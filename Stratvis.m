@@ -1,6 +1,7 @@
+function Stratvis
 clear all;
 close all;
-clc
+clc;
 
 scrn_size = get(0, 'ScreenSize');
 
@@ -41,6 +42,7 @@ load_button2 = uicontrol('Parent', chargement, ...
     'Position', [20, 90, 200, 30], ...
     'callback', {@load2_callback}...
     );
+% set(load_button2, 'Enable', 'off');
 
 load_button3 = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -50,6 +52,7 @@ load_button3 = uicontrol('Parent', chargement, ...
     'Position', [20, 50, 200, 30],...
     'callback', {@load3_callback}...
     );
+% set(load_button3, 'Enable', 'off');
 
 validation_button = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -80,38 +83,51 @@ handles.movie_scrn = axes( ...
     'NextPlot', 'add', ...
     'Position', [20, 10, 380, 340] ...
     );
+set(handles.movie_scrn, 'Visible', 'off');
 
 movie_slider = uicontrol( ...
     'Parent', v, ...
     'Style', 'slider', ...
     'String', 'test', ...
     'Position', [450, 20, 220, 20], ...
-    'SliderStep', [.001, .01]...
+    'SliderStep', [.001, .01],...
+    'Callback', {@movieslider_callback}...
     );
 
-play_stop_button = uicontrol( ...
+handles.play_button = uicontrol( ...
     'Parent', v, ...
     'Style', 'pushbutton', ...
     'FontSize', 10, ...
     'String', 'Play', ...
+    'Tag','play_button',...
     'Position', [450, 180, 60, 25],...
     'callback', {@play_Callback} ...
     );
-
+handles.stop_button = uicontrol( ...
+    'Parent', v, ...
+    'Style', 'pushbutton', ...
+    'FontSize', 10, ...
+    'String', 'Pause', ...
+    'Position', [520, 180, 60, 25],...
+    'callback', {@stop_Callback} ...
+    );
 uicontrol( ...
     'Parent', v, ...
     'Style', 'text', ...
     'HorizontalAlignment', 'left', ...
     'FontSize', 10, ...
     'String', 'Debut (sec) :', ...
-    'Position', [450, 110, 105, 15] ...
+    'Position', [450, 110, 105, 15], ...
+    'callback', {@stop_Callback} ...
     );
 
-starttimemap_edit = uicontrol( ...
+handles.starttimemap_edit = uicontrol( ...
     'Parent', v, ...
     'Style', 'edit', ...
     'FontSize', 10, ...
-    'Position', [580, 110, 60, 20]...
+    'Value', 0, ...
+    'Position', [580, 110, 60, 20],...
+    'Callback', {@time_edit_callback}...
     );
 
 % endtimemap_text =
@@ -138,90 +154,96 @@ tab = uitable(...
     'Data',randi(100,10,3),...
     'Position',[50 20 1250 350]...
     );
-tab.ColumnName = {'ROI','fixation time','orde de decouverte'};
+tab.ColumnName = {'ROI','Temps de fixation','Temps total','Ordre de decouverte'};
 tab.ColumnEditable = true;
+set(tab,'ColumnWidth',{304});
+
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Variables--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
-handles.filename1=0;
-handles.filename2=0;
-handles.filename3=0;
+handles.filename3='';
+handles.mem=1;
+handles.depart=1;
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Callbacks--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
 
-function load1_callback (hObject,~)
-[FileName,PathName,FilterIndex] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées du marqueur');
-disp(hObject.String)
-handles = guihandles(hObject);
-handles.Load_button1.String = FileName;
-handles.marqueur = importdata(FileName);
-handles.filename1=FileName;
-guidata(hObject, handles);
-end
+    function load1_callback (hObject,~)
+        set(load_button2, 'Enable', 'off');
+        [FileName,PathName,FilterIndex] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées du marqueur');
+        disp(hObject.String)
+        handles = guihandles(hObject);
+        handles.Load_button1.String = FileName;
+        handles.marqueur = importdata(FileName);
+        handles.filename1=FileName;
+        guidata(hObject, handles);
+    end
+    function load2_callback (hObject,~)
+        set(load_button2, 'Enable', 'on');
+        [FileName,PathName,~] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées des masques');
+        disp(hObject.String)
+        handles = guihandles(hObject);
+        handles.Load_button2.String = FileName;
+        handles.masque = importdata(FileName);
+        handles.filename2=FileName;
+        guidata(hObject, handles);
+    end
+    function load3_callback (hObject,eventdatta,handles)
+        %recuperation nom/chemin ... du fichier recherché
+        [FileName,PathName,FilterIndex] = uigetfile('*.mp4', 'Selectionner la vidéo');
+        %initialisation handles
+        handles = guihandles(hObject);
+        %def
+        handles.mem=1;
+        handles.filename3=FileName
+        currAxes = handles.movie_scrn;
+        handles.Load_button3.String = FileName;
+        %         %sauvegarde des handles
+        %         guidata(hObject, handles)
+        %affichage 1ere frame
+        obj = VideoReader(FileName);
+        this_frame = read(obj, handles.mem);
+        %rotations image
+        this_frame=imrotate(this_frame,180);
+        this_frame = flip(this_frame ,2);
+        %affichage sur l'axe
+        image(this_frame, 'Parent', currAxes);
+        guidata(hObject,handles)
+    end
 
-function load2_callback (hObject,~)
-[FileName,PathName,FilterIndex] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées des masques');
-disp(hObject.String)
-handles = guihandles(hObject);
-handles.Load_button2.String = FileName;
-handles.masque = importdata(FileName);
-handles.filename2=FileName;
-guidata(hObject, handles);
-end
-
-function load3_callback (hObject,~)
-[FileName,PathName,FilterIndex] = uigetfile('*.avi', 'Selectionner la vidéo')
-disp(hObject.String)
-handles = guihandles(hObject);
-handles.Load_button3.String = FileName;
-handles.filename3=FileName;
-guidata(hObject, handles);
-end
-
-function validation_callback(hObject,~)
-end
-
-function play_Callback(hObject,~)
-handles = guidata(hObject);
-handles.nom=handles.filename3;
-
-try
-    % Check the status of play button
-    isTextStart = strcmp(hObject.String,'Play');
-    isTextCont  = strcmp(hObject.String,'Stop');
-    if isTextStart
-        % Two cases: (1) starting first time, or (2) restarting
-        % Start from first frame
-        if isDone(videoSrc)
-            reset(videoSrc);
+    function play_Callback(~,~)
+        handles=guidata(handles.play_button)
+        currAxes = handles.movie_scrn;
+        obj = VideoReader(handles.filename3);
+        handles.play_button.Value =1;
+        handles.depart=handles.mem
+        
+        for k= handles.depart:200 %mettre les bonnes valeurs de framme
+            if handles.play_button.Value ==1
+                this_frame = read(obj,k);
+                this_frame=imrotate(this_frame,180);
+                this_frame = flip(this_frame ,2);
+                image(this_frame, 'Parent', currAxes);
+                currAxes.Visible = 'off' ;
+                handles.mem = k;
+                %         set(handles.movie_slider, 'Value', (k - 1))
+                pause(1/24)
+                
+            end
+            guidata(handles.play_button,handles)
         end
-    end
-    if (isTextStart || isTextCont)
-        hObject.String = 'Play';
-    else
-        hObject.String = 'Stop';
-    end
-    
-    % frames on figure
-    angle = 0;
-    while strcmp(hObject.String, 'Pause') && ~isDone(videoSrc)
-        % Get input video frame and rotated frame
-        [frame,angle] = getAndProcessFrame(videoSrc,angle);
-        % Display input video frame on axis
-        showFrameOnAxis(movie_scrn_1, frame);
         
     end
-    
-    % When video reaches the end of file, display "Start" on the
-    % play button.
-    if isDone(videoSrc)
-        hObject.String = 'Start';
+    function stop_Callback(~,~)
+        handles=guidata(handles.play_button);
+        set(handles.play_button, 'Enable', 'on');
+        handles.play_button.Value = 0;
     end
-catch ME
-    % Re-throw error message if it is not related to invalid handle
-    if ~strcmp(ME.identifier, 'MATLAB:class:InvalidHandle')
-        rethrow(ME);
+
+    function validation_callback(hObject,~)
     end
-end
+    function time_edit_callback(source, ~)
+    end
+    function movieslider_callback(source, ~)
+    end
 end
