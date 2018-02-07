@@ -65,9 +65,6 @@ for n=1:longueurLayer
         end
     end   
 end
-         
-    
-coords = cell2table(masque);
 
 coords = masque(:,1);
 coords = string(coords);
@@ -76,9 +73,22 @@ masqueCoords(:,2) = masque(:,2);
 
 masqueCoords(:,1) = masque(:,3);
 
+for s = 1 : longueurMask
+    frameTemps = str2double(masqueCoords(s,2));
+    frameTemps = frameTemps/30;
+    frameTemps = num2str(frameTemps);
+    masqueCoords{s,3} = frameTemps;
+end 
+
 for p = 1 : longueurMask
-    masqueCoords{p,3} = strsplit(coords(p));
+    masqueCoords{p,4} = strsplit(coords(p));
 end   
+
+for y = 1 : longueurMask
+    for z = 1 : length(masqueCoords{y,4})
+        masqueCoords{y,4}([1:2],z) = strsplit(masqueCoords{y,4}(1,z),',');
+    end
+end
 
 end
  
