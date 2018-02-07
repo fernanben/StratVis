@@ -42,7 +42,7 @@ load_button2 = uicontrol('Parent', chargement, ...
     'Position', [20, 90, 200, 30], ...
     'callback', {@load2_callback}...
     );
-% set(load_button2, 'Enable', 'off');
+set(load_button2, 'Enable', 'off');
 
 load_button3 = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -52,7 +52,7 @@ load_button3 = uicontrol('Parent', chargement, ...
     'Position', [20, 50, 200, 30],...
     'callback', {@load3_callback}...
     );
-% set(load_button3, 'Enable', 'off');
+ set(load_button3, 'Enable', 'off');
 
 validation_button = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -121,7 +121,7 @@ uicontrol( ...
     'callback', {@stop_Callback} ...
     );
 
-handles.starttimemap_edit = uicontrol( ...
+starttimemap_edit = uicontrol( ...
     'Parent', v, ...
     'Style', 'edit', ...
     'FontSize', 10, ...
@@ -129,7 +129,23 @@ handles.starttimemap_edit = uicontrol( ...
     'Position', [580, 110, 60, 20],...
     'Callback', {@time_edit_callback}...
     );
+uicontrol( ...
+    'Parent', v, ...
+    'Style', 'text', ...
+    'HorizontalAlignment', 'left', ...
+    'FontSize', 10, ...
+    'String', 'Temps actuel (sec) :', ...
+    'Position', [450, 140, 105, 15], ...
+    'callback', {@stop_Callback} ...
+    );
 
+Currenttime_edit = uicontrol( ...
+    'Parent', v, ...
+    'Style', 'edit', ...
+    'FontSize', 10, ...
+    'Value', 0, ...
+    'Position', [580, 140, 60, 20]...
+    );
 % endtimemap_text =
 uicontrol( ...
     'Parent', v, ...
@@ -144,7 +160,8 @@ endtimemap_edit = uicontrol( ...
     'Parent', v, ...
     'Style', 'edit', ...
     'FontSize', 10, ...
-    'Position', [580, 80, 60, 20]...
+    'Position', [580, 80, 60, 20],...
+    'Callback', {@endtime_callback}...
     );
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Tableau--------------------------------------------------------------
@@ -163,13 +180,14 @@ set(tab,'ColumnWidth',{304});
 %---------------------------------------------------------------------------------------------------------------------
 handles.filename3='';
 handles.mem=1;
+handles.endtime=2000;
 handles.depart=1;
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Callbacks--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
 
     function load1_callback (hObject,~)
-        set(load_button2, 'Enable', 'off');
+        set(load_button2, 'Enable', 'on');
         [FileName,PathName,FilterIndex] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées du marqueur');
         disp(hObject.String)
         handles = guihandles(hObject);
@@ -179,7 +197,7 @@ handles.depart=1;
         guidata(hObject, handles);
     end
     function load2_callback (hObject,~)
-        set(load_button2, 'Enable', 'on');
+        set(load_button3, 'Enable', 'on');
         [FileName,PathName,~] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées des masques');
         disp(hObject.String)
         handles = guihandles(hObject);
@@ -190,7 +208,7 @@ handles.depart=1;
     end
     function load3_callback (hObject,eventdatta,handles)
         %recuperation nom/chemin ... du fichier recherché
-        [FileName,PathName,FilterIndex] = uigetfile('*.mp4', 'Selectionner la vidéo');
+        [FileName,PathName,FilterIndex] = uigetfile('*.avi', 'Selectionner la vidéo');
         %initialisation handles
         handles = guihandles(hObject);
         %def
@@ -201,7 +219,10 @@ handles.depart=1;
         %         %sauvegarde des handles
         %         guidata(hObject, handles)
         %affichage 1ere frame
-        obj = VideoReader(FileName);
+        obj = VideoReader(FileName)
+        info = mmfileinfo(FileName)
+
+video = info.Video
         this_frame = read(obj, handles.mem);
         %rotations image
         this_frame=imrotate(this_frame,180);
@@ -210,29 +231,32 @@ handles.depart=1;
         image(this_frame, 'Parent', currAxes);
         guidata(hObject,handles)
     end
-
     function play_Callback(~,~)
+        %initialisation 
         handles=guidata(handles.play_button)
         currAxes = handles.movie_scrn;
         obj = VideoReader(handles.filename3);
         handles.play_button.Value =1;
-        handles.depart=handles.mem
-        
-        for k= handles.depart:200 %mettre les bonnes valeurs de framme
+        handles.depart=handles.mem;
+        set(starttimemap_edit,'String',num2str(round(handles.depart/30,2)));
+        %boucle d'affichage des frames
+        for k= handles.depart:handles.endtime 
+            %condition d'arret
             if handles.play_button.Value ==1
                 this_frame = read(obj,k);
                 this_frame=imrotate(this_frame,180);
                 this_frame = flip(this_frame ,2);
                 image(this_frame, 'Parent', currAxes);
-                currAxes.Visible = 'off' ;
                 handles.mem = k;
-                %         set(handles.movie_slider, 'Value', (k - 1))
-                pause(1/24)
+%                 set(movie_slider,'Min',handles.depart);
+%                 set(movie_slider,'Max',handles.endtime);
+%                 set(movie_slider, 'Value',round(k*(1/30)));
+                set(Currenttime_edit,'String',num2str(round(k*(1/30),0)));
+                pause(1/60)
                 
             end
             guidata(handles.play_button,handles)
         end
-        
     end
     function stop_Callback(~,~)
         handles=guidata(handles.play_button);
@@ -243,7 +267,22 @@ handles.depart=1;
     function validation_callback(hObject,~)
     end
     function time_edit_callback(source, ~)
+        handles=guidata(handles.play_button);
+        handles.mem=str2double(get(source,'String'))*30
+        currAxes = handles.movie_scrn;
+        obj = VideoReader(handles.filename3);
+        this_frame = read(obj,handles.mem);
+        this_frame=imrotate(this_frame,180);
+        this_frame = flip(this_frame ,2);
+        image(this_frame, 'Parent', currAxes);
+        currAxes.Visible = 'off' ;
+        guidata(handles.play_button,handles)
     end
     function movieslider_callback(source, ~)
+    end
+    function endtime_callback(source,~)
+        handles=guidata(handles.play_button);
+        handles.endtime=str2double(get(source,'String'))*30
+        guidata(handles.play_button,handles)
     end
 end
