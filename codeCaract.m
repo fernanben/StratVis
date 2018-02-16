@@ -1,11 +1,4 @@
-% function [caract,masque] = codeCaract(masque, caract, coords2, xBegaze2, yBegaze2);
-
-close all;
-clear all;
-clc;
-
-[masque, caract] = parserXML('paticipant-9.xml');
-[coords2, xBegaze2, yBegaze2] = coordonneesBeGaze('participant 9_4.txt');
+function [caract,masque] = codeCaract(masque, caract, coords2, xBegaze2, yBegaze2);
 
 for j = 1:length(coords2)
     tempsCoords(j,2) = str2double(coords2(j,5));
@@ -77,5 +70,7 @@ for p = 1:length(minMasqueIn)
     if isnan(minMasqueIn(p))==1
         caract(p,4)="NULL";
     end
+end
+
 end
 
