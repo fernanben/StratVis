@@ -1,4 +1,11 @@
-function caract = codeCaract(masque, coords2, xBegaze2, yBegaze2);
+% function [caract,masque] = codeCaract(masque, caract, coords2, xBegaze2, yBegaze2);
+
+close all;
+clear all;
+clc;
+
+[masque, caract] = parserXML('paticipant-9.xml');
+[coords2, xBegaze2, yBegaze2] = coordonneesBeGaze('participant 9_4.txt');
 
 for j = 1:length(coords2)
     tempsCoords(j,2) = str2double(coords2(j,5));
@@ -24,223 +31,51 @@ for i = 1:length(masque)
         yMasque = str2double(masque{i,4}(2,:));
     
         masque{i,5} = inpolygon(xCoords, yCoords, xMasque, yMasque);
-%     
-%         plot(xMasque,yMasque,'LineWidth',2) % polygon
-%         axis equal
-% 
-%         hold on
-%         plot(xCoords(masque{i,5}),yCoords(masque{i,5}),'r+') % points inside
-%         plot(xCoords(~masque{i,5}),yCoords(~masque{i,5}),'bo') % points outside
-%         hold off
+
     else
         masque{i,5}=false;
         masque{i,6}=num2str(0);
         masque{i,7}=num2str(0);
-end
-
-
+    end
 end
 
 a = masque(:,[1 5 6 7]);
 a=string(a);
 
-mannequin = 0;
-TempsMannequin = 0;
-
-pa = 0;
-TempsPA = 0;
-
-etCO2 = 0;
-TempsEt = 0;
-
-sat = 0;
-TempsSat = 0;
-
-fi = 0;
-TempsFi = 0;
-
-fc = 0;
-TempsFC = 0;
-
-in = find(strcmp(a(:,2),'true'));
-
-Mannequin = find(strcmp(a(:,1),'Tete et corps'));
-Mannequin = a(Mannequin,:);
-
-PA = find(strcmp(a(:,1),'PA'));
-PA = a(PA,:);
-
-Sat = find(strcmp(a(:,1),'Saturation'));
-Sat = a(Sat,:);
-
-FiO2 = find(strcmp(a(:,1),'FiO2'));
-FiO2 = a(FiO2,:);
-
-FC = find(strcmp(a(:,1),'FC'));
-FC = a(FC,:);
-
-EtCO2 = find(strcmp(a(:,1),'etCO2'));
-EtCO2 = a(EtCO2,:);
-
-if strcmp(Mannequin(1,2),'true')
-    mannequin = mannequin+1;
+for r = 1:length(caract)
+    indexMasque = find(strcmp(a(:,1),caract(r,1)));
+    Masque = a(indexMasque,:);
+    indexMasqueIn = find(strcmp(Masque(:,2),'true'));
+    if isempty(indexMasqueIn)==0
+        minMasque = min(indexMasqueIn);
+        minMasqueIn(r) = indexMasque(minMasque);
+    else
+        minMasqueIn(r)="";
+    end
+    compteur = 0;
+    compteur2 = 0;
+    if strcmp(Masque(1,2),'true')
+        compteur = compteur+1;
+    end
+    for m0 = 2:length(Masque)
+        if strcmp(Masque(m0,2),'true') & strcmp(Masque(m0-1,2),'false')
+            compteur = compteur+1;
+            compteur2 = compteur2+str2double(Masque(m0,4));
+        end
+    end
+    caract(r,2) = num2str(compteur);
+    caract(r,3) = num2str(compteur2);
 end
 
-if strcmp(PA(1,2),'true')
-    pa = pa+1;
+[ordre,indexOrdre] = sort(minMasqueIn);
+
+for t=1:length(indexOrdre)
+    caract(indexOrdre(t),4)=num2str(t);    
 end
 
-if strcmp(Sat(1,2),'true')
-    sat = sat+1;
-end
-
-if strcmp(FiO2(1,2),'true')
-    fi = fi+1;
-end
-
-if strcmp(EtCO2(1,2),'true')
-    etCO2 = etCO2+1;
-end
-
-if strcmp(FC(1,2),'true')
-    fc = fc+1;
-end
-
-for m1 = 2:length(Mannequin)
-    if strcmp(Mannequin(m1,2),'true') & strcmp(Mannequin(m1-1,2),'false')
-        mannequin = mannequin+1;
-        TempsMannequin = TempsMannequin+str2double(Mannequin(m1,4));
+for p = 1:length(minMasqueIn)
+    if isnan(minMasqueIn(p))==1
+        caract(p,4)="NULL";
     end
 end
 
-for m2 = 2:length(PA)
-    if strcmp(PA(m2,2),'true') & strcmp(PA(m2-1,2),'false')
-        pa = pa+1;
-        TempsPA = TempsPA+str2double(PA(m2,4));
-    end
-end
-
-for m3 = 2:length(EtCO2)
-    if strcmp(EtCO2(m3,2),'true') & strcmp(EtCO2(m3-1,2),'false')
-        etCO2 = etCO2+1;
-        TempsEt = TempsEt+str2double(EtCO2(m3,4));
-    end
-end
-
-for m4 = 2:length(Sat)
-    if strcmp(Sat(m4,2),'true') & strcmp(Sat(m4-1,2),'false')
-        sat = sat+1;
-        TempsSat = TempsSat+str2double(Sat(m4,4));
-    end
-end
-
-for m5 = 2:length(FiO2)
-    if strcmp(FiO2(m5,2),'true') & strcmp(FiO2(m5-1,2),'false')
-        fi = fi+1;
-        TempsFi = TempsFi+str2double(FiO2(m5,4));
-    end
-end
-
-for m6 = 2:length(FC)
-    if strcmp(FC(m6,2),'true') & strcmp(FC(m6-1,2),'false')
-        fc = fc+1;
-        TempsFC = TempsFC+str2double(FC(m6,4));
-    end
-end
-
-caract(1,1) = Mannequin(1,1);
-caract(1,2) = num2str(mannequin);
-caract(1,3) = num2str(TempsMannequin);
-caract(2,1) = FC(1,1); 
-caract(2,2) = num2str(fc);
-caract(2,3) = num2str(TempsFC);
-caract(3,1) = Sat(1,1);
-caract(3,2) = num2str(sat);
-caract(3,3) = num2str(TempsSat); 
-caract(4,1) = PA(1,1) ;
-caract(4,2) = num2str(pa);
-caract(4,3) = num2str(TempsPA); 
-caract(5,1) = EtCO2(1,1);
-caract(5,2) = num2str(etCO2);
-caract(5,3) = num2str(TempsEt);
-caract(6,1) = FiO2(1,1);
-caract(6,2) = num2str(fi);
-caract(6,3) = num2str(TempsFi);
-        
-
-% mannequin = 0;
-% TempsMannequin = 0;
-% 
-% PA = 0;
-% TempsPA = 0;
-% 
-% etCO2 = 0;
-% TempsEt = 0;
-% 
-% Sat = 0;
-% TempsSat = 0;
-% 
-% Fi = 0;
-% TempsFi = 0;
-% 
-% FC = 0;
-% TempsFC = 0;
-% 
-% if strcmp(masque{in(1),1},'Tete et corps')
-%     mannequin = mannequin+1;
-% end
-% if strcmp(masque{in(1),1},'PA')
-%     PA = PA+1;
-% end
-% if strcmp(masque{in(1),1},'Saturation')
-%     Sat = Sat+1;
-% end
-% if strcmp(masque{in(1),1},'FiO2')
-%     Fi = Fi+1;
-% end
-% if strcmp(masque{in(1),1},'etCO2')
-%     etCO2 = etCO2+1;
-% end
-% if strcmp(masque{in(1),1},'FC')
-%     FC = FC+1;
-% end
-% 
-% for p = 2:length(in)
-%             if strcmp(masque{in(p),1},'Tete et corps')
-% %                 TempsMannequin = TempsMannequin+str2double(coords2(index,8))
-%                 if strcmp(string(masque{in(p)-1,5}),'false') & strcmp(masque{in(p-1),1},'Tete et corps')==false
-%                     mannequin = mannequin+1;
-%                 end
-%             elseif strcmp(masque{in(p),1},'PA')
-% %                 TempsPA = TempsPA+str2double(coords2(index,8))
-%                 if strcmp(string(masque{in(p)-1,5}),'false') & strcmp(masque{in(p-1),1},'PA')==false
-%                     PA = PA+1;
-%                 end
-%             elseif strcmp(masque{in(p),1},'Saturation')
-% %                 TempsSat = TempsSat+str2double(coords2(index,8))
-%                 if strcmp(string(masque{in(p)-1,5}),'false') & strcmp(masque{in(p-1),1},'Saturation')==false
-%                     Sat = Sat+1;
-%                 end                
-%             elseif strcmp(masque{in(p),1},'FC')
-% %                 TempsFC = TempsFC+str2double(coords2(index,8))
-%                 if strcmp(string(masque{in(p)-1,5}),'false') & strcmp(masque{in(p-1),1},'FC')==false
-%                 FC = FC+1;
-%                 end                
-%             elseif strcmp(masque{in(p),1},'FiO2') 
-% %                 TempsFi = TempsFi+str2double(coords2(index,8))
-%                 if strcmp(string(masque{in(p)-1,5}),'false') & strcmp(masque{in(p-1),1},'FiO2')==false
-%                 Fi = Fi+1;
-%                 end               
-%             elseif strcmp(masque{in(p),1},'etCO2')
-% %                 TempsEt = TempsEt+str2double(coords2(index,8))
-%                 if strcmp(masque{in(p-1),1},'etCO2')==false
-%                     etCO2 = etCO2+1;
-%                 elseif strcmp(masque{in(p-1),1},'etCO2')==true & 
-%                 end                
-%             end
-% end
-% 
-% 
-% 
-
-end
