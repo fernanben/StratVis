@@ -1,4 +1,4 @@
-function masqueCoords = parserXML(nomFichier)
+function [masqueCoords, nomMasque] = parserXML(nomFichier)
 
 xDoc=xmlread(nomFichier); 
 
@@ -63,7 +63,16 @@ for n=1:longueurLayer
             masque(k,3) = cellstr(name);
            
         end
-    end   
+    end
+    
+    name = strcat('sensarea/layers/layer[', int2str(n), ']/name');
+        
+    expression = xpath.compile(name);
+        
+    name = expression.evaluate(xDoc, XPathConstants.STRING);
+    
+    nomMasque(n,1) = string(name);
+    
 end
 
 coords = masque(:,1);
