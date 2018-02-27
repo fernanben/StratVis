@@ -32,6 +32,9 @@ for i = 1:length(masque)
     end
 end
 
+b = find(~strcmp(masque(:,6),'0'));
+masque = masque(b,:);
+
 a = masque(:,[1 5 6 7]);
 a=string(a);
 
@@ -53,6 +56,8 @@ for r = 1:length(caract)
     for m0 = 2:length(Masque)
         if strcmp(Masque(m0,2),'true') & strcmp(Masque(m0-1,2),'false')
             compteur = compteur+1;
+        end
+        if strcmp(Masque(m0,2),'true') & str2double(Masque(m0-1,4))~=str2double(Masque(m0,4))
             compteur2 = compteur2+str2double(Masque(m0,4));
         end
     end
