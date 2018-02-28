@@ -58,7 +58,7 @@ load_button2 = uicontrol('Parent', chargement, ...
     'Position', [20, 90, 200, 30], ...
     'callback', {@load2_callback}...
     );
-set(load_button2, 'Enable', 'off');
+% set(load_button2, 'Enable', 'off');
 
 load_button3 = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -68,7 +68,7 @@ load_button3 = uicontrol('Parent', chargement, ...
     'Position', [20, 50, 200, 30],...
     'callback', {@load3_callback}...
     );
-set(load_button3, 'Enable', 'off');
+% set(load_button3, 'Enable', 'off');
 
 validation_button = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -188,7 +188,7 @@ handles.valider = uicontrol( ...
     'Style', 'pushbutton', ...
     'FontSize', 10, ...
     'String', 'Valider intervalle', ...
-    'Position', [630, 180, 180, 25],...
+    'Position', [630, 180, 120, 25],...
     'callback', {@Valider_Callback} ...
     );
 
@@ -232,6 +232,7 @@ handles.caract=[];
 handles.masque=[];
 handles.caract1=[];
 handles.masque1=[];
+handles.masqueS=[];
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Callbacks--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
@@ -260,17 +261,17 @@ handles.masque1=[];
         [handles.masqueS, handles.caract] = parserXML(handles.filename2);
         guidata(load_button1, handles);
     end
-    function load3_callback (hObject,eventdata,handles)
+    function load3_callback (~,~)
         %recuperation nom/chemin ... du fichier recherché
         [FileName,PathName,FilterIndex] = uigetfile('*.avi', 'Selectionner la vidéo');
-        %initialisation handles
-        handles = guihandles(hObject);
+       %initialisation handles
+        handles = guihandles(load_button1);
+        currAxes = handles.movie_scrn;
+        handles=guidata(load_button1)
+        handles.filename3=FileName ;       
+        handles.Load_button3.String = FileName; 
         %def
         handles.mem=1;
-        handles.filename3=FileName
-        currAxes = handles.movie_scrn;
-        handles.Load_button3.String = FileName;
-        
         obj = VideoReader(FileName);
         this_frame = read(obj, handles.mem);
         %rotations image
@@ -282,13 +283,14 @@ handles.masque1=[];
         set(movie_slider, 'min',1,'max',handles.endtime);
         set(starttimemap_edit,'String',0);
         set(endtimemap_edit,'String',handles.endtime/30);
-        set(participant_edit,'String',handles.filename3);
-        guidata(hObject,handles)
+         set(participant_edit,'String',handles.filename3);
+        guidata(load_button1,handles)
     end
-    function play_Callback(~,~)
+    function play_Callback(source,~)
         %initialisation
-        handles=guidata(handles.play_button)
+        handles = guihandles(source);
         currAxes = handles.movie_scrn;
+        handles=guidata(load_button1)
         obj = VideoReader(handles.filename3);
         handles.play_button.Value =1;
         handles.depart=handles.mem;
@@ -308,39 +310,40 @@ handles.masque1=[];
                 set(Currenttime_edit,'String',num2str(round(k*(1/30),0)));
                 pause(1/60)
             end
-            guidata(handles.play_button,handles)
+            guidata(load_button1,handles)
         end
     end
     function stop_Callback(~,~)
-        handles=guidata(handles.play_button);
-        set(handles.play_button, 'Enable', 'on');
+        handles=guidata(load_button1);
         handles.play_button.Value = 0;
         set(endtimemap_edit, 'String', handles.mem/30);
-        
+        guidata(load_button1,handles)
     end
     function validation_callback(source,~)
-        handles=guidata(load_button2)
+        handles=guidata(load_button1)
         [handles.caract1, handles.masque1] = codeCaract(handles.masqueS, handles.caract,handles.debut,handles.fin, handles.coords, handles.xBegaze, handles.yBegaze);
         set(tab, 'Data', handles.caract1)
-        guidata(load_button2, handles);
+        guidata(load_button1, handles);
     end
     function Valider_Callback(~,~)
-        handles=guidata(handles.play_button)
+        handles=guidata(load_button1)
         handles.debut=str2double(get(starttimemap_edit,'String'))*1000
         handles.fin=str2double(get(endtimemap_edit,'String'))*1000
-        guidata(handles.play_button,handles)
+        guidata(load_button1,handles)
     end
     function time_edit_callback(source, ~)
-        handles=guidata(handles.play_button);
-        handles.mem=str2double(get(source,'String'))*30
+        handles=guihandles(source);
         currAxes = handles.movie_scrn;
+        handles=guidata(load_button1);
+        handles.mem=str2double(get(source,'String'))*30
+        
         obj = VideoReader(handles.filename3);
         this_frame = read(obj,handles.mem);
         this_frame=imrotate(this_frame,180);
         this_frame = flip(this_frame ,2);
         image(this_frame, 'Parent', currAxes);
         currAxes.Visible = 'off' ;
-        guidata(handles.play_button,handles)
+        guidata(load_button1,handles)
     end
     function movieslider_callback(source, ~)
         set(endtimemap_edit,'String','');
@@ -365,8 +368,8 @@ handles.masque1=[];
         
     end
     function endtime_callback(source,~)
-        handles=guidata(handles.play_button);
+        handles=guidata(load_button1);
         handles.endtime=str2double(get(source,'String'))*30
-        guidata(handles.play_button,handles)
+        guidata(load_button1,handles)
     end
 end
