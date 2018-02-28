@@ -7,7 +7,7 @@ scrn_size = get(0, 'ScreenSize');
 
 f = figure('Name', 'StratVis', ...
     'Visible', 'on', ...
-    'Position', [0,0,scrn_size(3),scrn_size(4)], ...
+    'Position', [0,0,1366,768], ...
     'NumberTitle', 'Off', ...
     'MenuBar', 'none', ...
     'resize', 'off'...
@@ -42,7 +42,7 @@ load_button2 = uicontrol('Parent', chargement, ...
     'Position', [20, 90, 200, 30], ...
     'callback', {@load2_callback}...
     );
-set(load_button2, 'Enable', 'off');
+ set(load_button2, 'Enable', 'off');
 
 load_button3 = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -52,7 +52,7 @@ load_button3 = uicontrol('Parent', chargement, ...
     'Position', [20, 50, 200, 30],...
     'callback', {@load3_callback}...
     );
- set(load_button3, 'Enable', 'off');
+ %set(load_button3, 'Enable', 'off');
 
 validation_button = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -83,16 +83,19 @@ handles.movie_scrn = axes( ...
     'NextPlot', 'add', ...
     'Position', [20, 10, 380, 340] ...
     );
-set(handles.movie_scrn, 'Visible', 'off');
+%set(handles.movie_scrn, 'Visible', 'off');
 
 movie_slider = uicontrol( ...
     'Parent', v, ...
     'Style', 'slider', ...
     'String', 'test', ...
     'Position', [450, 20, 220, 20], ...
-    'SliderStep', [.001, .01],...
     'Callback', {@movieslider_callback}...
     );
+ set(movie_slider, 'min',1);
+  set(movie_slider, 'max',100); 
+  set(movie_slider, 'value',2); 
+addlistener(movie_slider, 'ContinuousValueChange', @movieslider_callback);
 
 handles.play_button = uicontrol( ...
     'Parent', v, ...
@@ -208,7 +211,7 @@ handles.depart=1;
     end
     function load3_callback (hObject,eventdatta,handles)
         %recuperation nom/chemin ... du fichier recherché
-        [FileName,PathName,FilterIndex] = uigetfile('*.avi', 'Selectionner la vidéo');
+        [FileName,PathName,FilterIndex] = uigetfile('*.mp4', 'Selectionner la vidéo');
         %initialisation handles
         handles = guihandles(hObject);
         %def
@@ -216,19 +219,24 @@ handles.depart=1;
         handles.filename3=FileName
         currAxes = handles.movie_scrn;
         handles.Load_button3.String = FileName;
-        %         %sauvegarde des handles
-        %         guidata(hObject, handles)
+        %%sauvegarde des handles
+        %guidata(hObject, handles)
         %affichage 1ere frame
-        obj = VideoReader(FileName)
-        info = mmfileinfo(FileName)
-
-video = info.Video
+        obj = VideoReader(FileName);
+%         i=1;
+%         while hasFrame(obj)
+%             this_frame{i} = readFrame(obj);
+%             i=i+1
+%         end
+            
         this_frame = read(obj, handles.mem);
         %rotations image
         this_frame=imrotate(this_frame,180);
         this_frame = flip(this_frame ,2);
         %affichage sur l'axe
-        image(this_frame, 'Parent', currAxes);
+       image(this_frame, 'Parent', currAxes);
+       handles.endtime =ceil(obj.FrameRate*obj.Duration);
+        set(movie_slider, 'min',1,'max',handles.endtime);
         guidata(hObject,handles)
     end
     function play_Callback(~,~)
@@ -243,25 +251,27 @@ video = info.Video
         for k= handles.depart:handles.endtime 
             %condition d'arret
             if handles.play_button.Value ==1
+                set(endtimemap_edit,'String','');
                 this_frame = read(obj,k);
                 this_frame=imrotate(this_frame,180);
                 this_frame = flip(this_frame ,2);
+                cla;
                 image(this_frame, 'Parent', currAxes);
                 handles.mem = k;
-%                 set(movie_slider,'Min',handles.depart);
-%                 set(movie_slider,'Max',handles.endtime);
-%                 set(movie_slider, 'Value',round(k*(1/30)));
+                set(movie_slider, 'Value',k);
                 set(Currenttime_edit,'String',num2str(round(k*(1/30),0)));
                 pause(1/60)
-                
-            end
+            end               
             guidata(handles.play_button,handles)
         end
     end
+
     function stop_Callback(~,~)
         handles=guidata(handles.play_button);
         set(handles.play_button, 'Enable', 'on');
         handles.play_button.Value = 0;
+         set(endtimemap_edit, 'String', handles.mem/30);
+        
     end
 
     function validation_callback(hObject,~)
@@ -279,6 +289,27 @@ video = info.Video
         guidata(handles.play_button,handles)
     end
     function movieslider_callback(source, ~)
+         set(endtimemap_edit,'String','');
+         set(starttimemap_edit,'String','');
+         
+         val = get(source, 'Value');
+         handles=guidata(handles.play_button)
+         currAxes = handles.movie_scrn;
+         obj = VideoReader(handles.filename3);
+         handles.endtime =ceil(obj.FrameRate*obj.Duration);
+         set(movie_slider, 'max',handles.endtime); 
+         i = round(val)
+        set(currAxes, 'NextPlot', 'add', 'YTick', [], 'XTick', []);
+        this_frame=read(obj,i);
+        this_frame=imrotate(this_frame,180);
+        this_frame = flip(this_frame ,2);
+        image(this_frame, 'Parent', currAxes);        
+        axis off;
+        
+        set(Currenttime_edit,'String',i/30);
+        handles.mem=i;
+        guidata(handles.play_button,handles)
+        
     end
     function endtime_callback(source,~)
         handles=guidata(handles.play_button);
