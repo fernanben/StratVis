@@ -3,16 +3,17 @@ clear all;
 close all;
 clc;
 
-scrn_size = get(0, 'ScreenSize');
-
+%scrn_size = get(0, 'ScreenSize');
+%[0,0,scrn_size(3),scrn_size(4)]
 f = figure('Name', 'StratVis', ...
     'Visible', 'on', ...
     'Position', [0,0,1366,768], ...
     'NumberTitle', 'Off', ...
     'MenuBar', 'none', ...
-    'resize', 'off'...
+    'resize', 'on'...
     );
-participant = uicontrol( ...
+
+uicontrol( ...
     'Parent', f, ...
     'Style', 'text', ...
     'HorizontalAlignment', 'left', ...
@@ -57,7 +58,7 @@ load_button2 = uicontrol('Parent', chargement, ...
     'Position', [20, 90, 200, 30], ...
     'callback', {@load2_callback}...
     );
- set(load_button2, 'Enable', 'off');
+set(load_button2, 'Enable', 'off');
 
 load_button3 = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -67,7 +68,7 @@ load_button3 = uicontrol('Parent', chargement, ...
     'Position', [20, 50, 200, 30],...
     'callback', {@load3_callback}...
     );
- %set(load_button3, 'Enable', 'off');
+%set(load_button3, 'Enable', 'off');
 
 validation_button = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -98,7 +99,7 @@ handles.movie_scrn = axes( ...
     'NextPlot', 'add', ...
     'Position', [20, 10, 380, 340] ...
     );
-%set(handles.movie_scrn, 'Visible', 'off');
+set(handles.movie_scrn, 'Visible', 'off');
 
 movie_slider = uicontrol( ...
     'Parent', v, ...
@@ -107,9 +108,9 @@ movie_slider = uicontrol( ...
     'Position', [450, 20, 220, 20], ...
     'Callback', {@movieslider_callback}...
     );
- set(movie_slider, 'min',1);
-  set(movie_slider, 'max',100); 
-  set(movie_slider, 'value',2); 
+set(movie_slider, 'min',1);
+set(movie_slider, 'max',100);
+set(movie_slider, 'value',2);
 addlistener(movie_slider, 'ContinuousValueChange', @movieslider_callback);
 
 handles.play_button = uicontrol( ...
@@ -181,18 +182,28 @@ endtimemap_edit = uicontrol( ...
     'Position', [580, 80, 60, 20],...
     'Callback', {@endtime_callback}...
     );
+
+
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Tableau--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
 tab = uitable(...
     'Parent',f,...
-    'Data',randi(100,10,3),...
     'Position',[50 20 1250 350]...
     );
-tab.ColumnName = {'ROI','Temps de fixation','Temps total','Ordre de decouverte'};
+tab.ColumnName = {'ROI','Nombre de fixation','Temps total','Ordre de decouverte'};
 tab.ColumnEditable = true;
 set(tab,'ColumnWidth',{304});
 
+%les figures se deplacent avec le screen
+h_fig = findobj(f, '-not', 'Units', 'normalized');
+lgt_h_fig = length(h_fig);
+for l = 1:lgt_h_fig
+    if isprop(h_fig(l), 'Units')
+        set(h_fig(l), 'Units', 'normalized')
+    end
+end
+movegui(f, 'center')
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Variables--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
@@ -234,23 +245,15 @@ handles.depart=1;
         handles.filename3=FileName
         currAxes = handles.movie_scrn;
         handles.Load_button3.String = FileName;
-        %%sauvegarde des handles
-        %guidata(hObject, handles)
-        %affichage 1ere frame
+        
         obj = VideoReader(FileName);
-%         i=1;
-%         while hasFrame(obj)
-%             this_frame{i} = readFrame(obj);
-%             i=i+1
-%         end
-            
         this_frame = read(obj, handles.mem);
         %rotations image
         this_frame=imrotate(this_frame,180);
         this_frame = flip(this_frame ,2);
         %affichage sur l'axe
-       image(this_frame, 'Parent', currAxes);
-       handles.endtime =ceil(obj.FrameRate*obj.Duration);
+        image(this_frame, 'Parent', currAxes);
+        handles.endtime =ceil(obj.FrameRate*obj.Duration);
         set(movie_slider, 'min',1,'max',handles.endtime);
         set(starttimemap_edit,'String',0);
         set(endtimemap_edit,'String',handles.endtime/30);
@@ -258,7 +261,7 @@ handles.depart=1;
         guidata(hObject,handles)
     end
     function play_Callback(~,~)
-        %initialisation 
+        %initialisation
         handles=guidata(handles.play_button)
         currAxes = handles.movie_scrn;
         obj = VideoReader(handles.filename3);
@@ -266,7 +269,7 @@ handles.depart=1;
         handles.depart=handles.mem;
         set(starttimemap_edit,'String',num2str(round(handles.depart/30,2)));
         %boucle d'affichage des frames
-        for k= handles.depart:handles.endtime 
+        for k= handles.depart:handles.endtime
             %condition d'arret
             if handles.play_button.Value ==1
                 set(endtimemap_edit,'String','');
@@ -279,20 +282,18 @@ handles.depart=1;
                 set(movie_slider, 'Value',k);
                 set(Currenttime_edit,'String',num2str(round(k*(1/30),0)));
                 pause(1/60)
-            end               
+            end
             guidata(handles.play_button,handles)
         end
     end
-
     function stop_Callback(~,~)
         handles=guidata(handles.play_button);
         set(handles.play_button, 'Enable', 'on');
         handles.play_button.Value = 0;
-         set(endtimemap_edit, 'String', handles.mem/30);
+        set(endtimemap_edit, 'String', handles.mem/30);
         
     end
-
-    function validation_callback(hObject,~)
+    function validation_callback(source,~)
     end
     function time_edit_callback(source, ~)
         handles=guidata(handles.play_button);
@@ -307,21 +308,21 @@ handles.depart=1;
         guidata(handles.play_button,handles)
     end
     function movieslider_callback(source, ~)
-         set(endtimemap_edit,'String','');
-         set(starttimemap_edit,'String','');
-         
-         val = get(source, 'Value');
-         handles=guidata(handles.play_button)
-         currAxes = handles.movie_scrn;
-         obj = VideoReader(handles.filename3);
-         handles.endtime =ceil(obj.FrameRate*obj.Duration);
-         set(movie_slider, 'max',handles.endtime); 
-         i = round(val)
+        set(endtimemap_edit,'String','');
+        set(starttimemap_edit,'String','');
+        
+        val = get(source, 'Value');
+        handles=guidata(handles.play_button)
+        currAxes = handles.movie_scrn;
+        obj = VideoReader(handles.filename3);
+        handles.endtime =ceil(obj.FrameRate*obj.Duration);
+        set(movie_slider, 'max',handles.endtime);
+        i = round(val)
         set(currAxes, 'NextPlot', 'add', 'YTick', [], 'XTick', []);
         this_frame=read(obj,i);
         this_frame=imrotate(this_frame,180);
         this_frame = flip(this_frame ,2);
-        image(this_frame, 'Parent', currAxes);        
+        image(this_frame, 'Parent', currAxes);
         axis off;
         
         set(Currenttime_edit,'String',i/30);
