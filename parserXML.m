@@ -71,7 +71,8 @@ for n=1:longueurLayer
         
     name = expression.evaluate(xDoc, XPathConstants.STRING);
     
-    nomMasque(n,1) = string(name);
+    nomMasque{n,1} = string(name);
+    nomMasque{n,1} = char(nomMasque{n,1});
     
 end
 
