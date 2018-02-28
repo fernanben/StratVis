@@ -237,6 +237,8 @@ handles.depart=1;
        image(this_frame, 'Parent', currAxes);
        handles.endtime =ceil(obj.FrameRate*obj.Duration);
         set(movie_slider, 'min',1,'max',handles.endtime);
+        set(starttimemap_edit,'String',0);
+        set(endtimemap_edit,'String',handles.endtime/30);
         guidata(hObject,handles)
     end
     function play_Callback(~,~)
