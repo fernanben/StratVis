@@ -68,7 +68,7 @@ load_button3 = uicontrol('Parent', chargement, ...
     'Position', [20, 50, 200, 30],...
     'callback', {@load3_callback}...
     );
-%set(load_button3, 'Enable', 'off');
+set(load_button3, 'Enable', 'off');
 
 validation_button = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -183,6 +183,15 @@ endtimemap_edit = uicontrol( ...
     'Callback', {@endtime_callback}...
     );
 
+handles.valider = uicontrol( ...
+    'Parent', v, ...
+    'Style', 'pushbutton', ...
+    'FontSize', 10, ...
+    'String', 'Valider intervalle', ...
+    'Position', [630, 180, 180, 25],...
+    'callback', {@Valider_Callback} ...
+    );
+
 
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Tableau--------------------------------------------------------------
@@ -211,6 +220,18 @@ handles.filename3='';
 handles.mem=1;
 handles.endtime=2000;
 handles.depart=1;
+
+handles.debut=0;
+handles.fin=0;
+
+handles.coords=[];
+handles.xBegaze=[];
+handles.yBegaze=[];
+
+handles.caract=[];
+handles.masque=[];
+handles.caract1=[];
+handles.masque1=[];
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Callbacks--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
@@ -223,21 +244,25 @@ handles.depart=1;
         handles.Load_button1.String = FileName;
         handles.marqueur = importdata(FileName);
         handles.filename1=FileName;
-        guidata(hObject, handles);
+        [handles.coords, handles.xBegaze, handles.yBegaze] = coordonneesBeGaze(handles.filename1);
+        handles.debut=min(str2double(handles.coords(:,4)));
+        handles.fin=max(str2double(handles.coords(:,5)));
+        guidata(load_button1, handles)
     end
     function load2_callback (hObject,~)
         set(load_button3, 'Enable', 'on');
-        [FileName,PathName,~] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées des masques');
+        [FileName,PathName,~] = uigetfile('*.xml', 'Selectionner le fichier texte avec les coordonnées des masques');
         disp(hObject.String)
-        handles = guihandles(hObject);
+        handles=guidata(load_button1)
         handles.Load_button2.String = FileName;
         handles.masque = importdata(FileName);
         handles.filename2=FileName;
-        guidata(hObject, handles);
+        [handles.masqueS, handles.caract] = parserXML(handles.filename2);
+        guidata(load_button1, handles);
     end
-    function load3_callback (hObject,eventdatta,handles)
+    function load3_callback (hObject,eventdata,handles)
         %recuperation nom/chemin ... du fichier recherché
-        [FileName,PathName,FilterIndex] = uigetfile('*.mp4', 'Selectionner la vidéo');
+        [FileName,PathName,FilterIndex] = uigetfile('*.avi', 'Selectionner la vidéo');
         %initialisation handles
         handles = guihandles(hObject);
         %def
@@ -272,7 +297,7 @@ handles.depart=1;
         for k= handles.depart:handles.endtime
             %condition d'arret
             if handles.play_button.Value ==1
-                set(endtimemap_edit,'String','');
+                %                 set(endtimemap_edit,'String','');
                 this_frame = read(obj,k);
                 this_frame=imrotate(this_frame,180);
                 this_frame = flip(this_frame ,2);
@@ -294,6 +319,16 @@ handles.depart=1;
         
     end
     function validation_callback(source,~)
+        handles=guidata(load_button2)
+        [handles.caract1, handles.masque1] = codeCaract(handles.masqueS, handles.caract,handles.debut,handles.fin, handles.coords, handles.xBegaze, handles.yBegaze);
+        set(tab, 'Data', handles.caract1)
+        guidata(load_button2, handles);
+    end
+    function Valider_Callback(~,~)
+        handles=guidata(handles.play_button)
+        handles.debut=str2double(get(starttimemap_edit,'String'))*1000
+        handles.fin=str2double(get(endtimemap_edit,'String'))*1000
+        guidata(handles.play_button,handles)
     end
     function time_edit_callback(source, ~)
         handles=guidata(handles.play_button);
@@ -309,8 +344,7 @@ handles.depart=1;
     end
     function movieslider_callback(source, ~)
         set(endtimemap_edit,'String','');
-        set(starttimemap_edit,'String','');
-        
+        set(starttimemap_edit,'String','');        
         val = get(source, 'Value');
         handles=guidata(handles.play_button)
         currAxes = handles.movie_scrn;
