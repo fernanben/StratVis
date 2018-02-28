@@ -261,17 +261,17 @@ handles.masqueS=[];
         [handles.masqueS, handles.caract] = parserXML(handles.filename2);
         guidata(load_button1, handles);
     end
-    function load3_callback (~,~)
+    function load3_callback (source,~)
+        handles = guihandles(source);
+        currAxes = handles.movie_scrn; 
         %recuperation nom/chemin ... du fichier recherché
-        [FileName,PathName,FilterIndex] = uigetfile('*.avi', 'Selectionner la vidéo');
-       %initialisation handles
-        handles = guihandles(load_button1);
-        currAxes = handles.movie_scrn;
+        [FileName,~,~] = uigetfile('*.avi', 'Selectionner la vidéo');
+       %initialisation handles  
         handles=guidata(load_button1)
         handles.filename3=FileName ;       
-        handles.Load_button3.String = FileName; 
-        %def
+        set(load_button3, 'String' , handles.filename3); 
         handles.mem=1;
+        
         obj = VideoReader(FileName);
         this_frame = read(obj, handles.mem);
         %rotations image
@@ -279,6 +279,7 @@ handles.masqueS=[];
         this_frame = flip(this_frame ,2);
         %affichage sur l'axe
         image(this_frame, 'Parent', currAxes);
+        
         handles.endtime =ceil(obj.FrameRate*obj.Duration);
         set(movie_slider, 'min',1,'max',handles.endtime);
         set(starttimemap_edit,'String',0);
@@ -349,7 +350,7 @@ handles.masqueS=[];
         set(endtimemap_edit,'String','');
         set(starttimemap_edit,'String','');        
         val = get(source, 'Value');
-        handles=guidata(handles.play_button)
+        handles=guidata(load_button1)
         currAxes = handles.movie_scrn;
         obj = VideoReader(handles.filename3);
         handles.endtime =ceil(obj.FrameRate*obj.Duration);
@@ -364,7 +365,7 @@ handles.masqueS=[];
         
         set(Currenttime_edit,'String',i/30);
         handles.mem=i;
-        guidata(handles.play_button,handles)
+        guidata(load_button1,handles)
         
     end
     function endtime_callback(source,~)
