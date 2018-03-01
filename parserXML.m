@@ -1,4 +1,4 @@
-function [masqueCoords, nomMasque] = parserXML(nomFichier)
+function [masqueCoords, nomMasque,x] = parserXML(nomFichier)
 
 xDoc=xmlread(nomFichier); 
 
@@ -24,9 +24,10 @@ longueurLayer = listeLayer.getLength;
  c=1;
  j=1;
  m=1;
- 
+ x=0;
+ h = waitbar(0,'Veuillez patienter')
+
 for i=1:longueurMask
-    
     layer = strcat('sensarea/masks/mask[', int2str(i), ']/layer');
     
     expression = xpath.compile(layer);
@@ -49,7 +50,6 @@ end
 
 
 for n=1:longueurLayer
-    
     for k=1:longueurMask
 
         if strcmp(masque(k,3),int2str(n))
@@ -90,7 +90,7 @@ for s = 1 : longueurMask
     masqueCoords{s,3} = frameTemps;
 end 
 
-for p = 1 : longueurMask
+for p = 1 : longueurMask   
     masqueCoords{p,4} = strsplit(coords(p));
 end   
 
@@ -100,9 +100,8 @@ for y = 1 : longueurMask
     end
 end
 
+ close(h)
+
 end
- 
-
-
 
 
