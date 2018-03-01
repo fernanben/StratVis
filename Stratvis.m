@@ -332,43 +332,68 @@ handles.obj=[];
         guidata(load_button1,handles)
     end
     function time_edit_callback(source, ~)
+        
         handles=guihandles(source);
         currAxes = handles.movie_scrn;
         handles=guidata(load_button1);
-        handles.mem=str2double(get(source,'String'))*30
-        this_frame = read(handles.obj,handles.mem);
+        if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > str2double(get(endtimemap_edit,'String'))
+            mode = struct('WindowStyle','non-modal',...
+                'Interpreter','tex');
+            h = errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
+                'Saisie incorrect', mode);
+        elseif str2double(get(source,'String'))==str2double(get(endtimemap_edit,'String'))
+            mode = struct('WindowStyle','non-modal',...
+                'Interpreter','tex');
+            h = errordlg('Le temps de début ne peut être égal au temps de fin',...
+                'Saisie incorrect', mode);
+        else
+            handles.mem=str2double(get(source,'String'))*30
+            this_frame = read(handles.obj,handles.mem);
+            this_frame=imrotate(this_frame,180);
+            this_frame = flip(this_frame ,2);
+            image(this_frame, 'Parent', currAxes);
+            currAxes.Visible = 'off' ;
+            guidata(load_button1,handles)
+        end
+    end
+
+    function movieslider_callback(source, ~)
+        handles=guihandles(source);
+        currAxes = handles.movie_scrn;      
+        
+        val = get(source, 'Value');
+        handles=guidata(load_button1)
+        handles.endtime =ceil(handles.obj.FrameRate*handles.obj.Duration);
+        set(movie_slider, 'max',handles.endtime);
+        i = round(val)
+        set(currAxes, 'NextPlot', 'add', 'YTick', [], 'XTick', []);
+        this_frame=read(handles.obj,i);
         this_frame=imrotate(this_frame,180);
         this_frame = flip(this_frame ,2);
         image(this_frame, 'Parent', currAxes);
-        currAxes.Visible = 'off' ;
+        axis off;
+        set(Currenttime_edit,'String',i/30);
+        set(endtimemap_edit,'String',handles.endtime/30);
+        set(starttimemap_edit,'String',i/30);
+        handles.mem=i;
         guidata(load_button1,handles)
+        
     end
-
-function movieslider_callback(source, ~)
-handles=guihandles(source);
-currAxes = handles.movie_scrn;
-set(starttimemap_edit,'String','');
-val = get(source, 'Value');
-handles=guidata(load_button1)
-handles.endtime =ceil(handles.obj.FrameRate*handles.obj.Duration);
-set(movie_slider, 'max',handles.endtime);
-i = round(val)
-set(currAxes, 'NextPlot', 'add', 'YTick', [], 'XTick', []);
-this_frame=read(handles.obj,i);
-this_frame=imrotate(this_frame,180);
-this_frame = flip(this_frame ,2);
-image(this_frame, 'Parent', currAxes);
-axis off;
-set(Currenttime_edit,'String',i/30);
-handles.mem=i;
-guidata(load_button1,handles)
-
-end
-function endtime_callback(source,~)
-
-handles=guidata(load_button1);
-handles.endtime=str2double(get(source,'String'))*30
-guidata(load_button1,handles)
-
-end
+    function endtime_callback(source,~)
+        handles=guidata(load_button1);
+        if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > handles.endtime/30
+            mode = struct('WindowStyle','non-modal',...
+                'Interpreter','tex');
+            h = errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
+                'Saisie incorrect', mode);
+        elseif str2double(get(source,'String'))==str2double(get(starttimemap_edit,'String'))
+            mode = struct('WindowStyle','non-modal',...
+                'Interpreter','tex');
+            h = errordlg('Le temps de début ne peut être égal au temps de fin',...
+                'Saisie incorrect', mode);
+        else
+            handles.endtime=str2double(get(source,'String'))*30
+            guidata(load_button1,handles)
+        end
+    end
 end
