@@ -1,5 +1,4 @@
 function Stratvis
-clear all;
 close all;
 clc;
 
@@ -255,7 +254,7 @@ handles.obj=[];
     function load2_callback (hObject,~)
         [FileName,~,~] = uigetfile('*.xml', 'Selectionner le fichier texte avec les coordonnées des masques');
         disp(hObject.String)
-        handles=guidata(load_button1)
+        handles=guidata(load_button1);
         handles.Load_button2.String = FileName;
         handles.masque = importdata(FileName);
         handles.filename2=FileName;
@@ -268,11 +267,11 @@ handles.obj=[];
         %recuperation nom/chemin ... du fichier recherché
         [FileName,~,~] = uigetfile('*.avi', 'Selectionner la vidéo');
         %initialisation handles
-        handles=guidata(load_button1)
+        handles=guidata(load_button1);
         handles.filename3=FileName ;
         set(load_button3, 'String' , handles.filename3);
         handles.mem=1;
-        h = waitbar(0,'Veuillez patienter')
+        h = waitbar(0,'Veuillez patienter');
         handles.obj = VideoReader(FileName);
         this_frame = read(handles.obj, handles.mem);
         %rotations image
@@ -292,7 +291,7 @@ handles.obj=[];
         %initialisation
         handles = guihandles(source);
         currAxes = handles.movie_scrn;
-        handles=guidata(load_button1)
+        handles=guidata(load_button1);
         handles.play_button.Value =1;
         handles.depart=handles.mem;
         set(starttimemap_edit,'String',num2str(round(handles.depart/30,2)));
@@ -313,22 +312,21 @@ handles.obj=[];
             guidata(load_button1,handles)
         end
     end
-
     function stop_Callback(~,~)
         handles=guidata(load_button1);
         handles.play_button.Value = 0;
         guidata(load_button1,handles)
     end
-    function validation_callback(source,~)
-        handles=guidata(load_button1)
+    function validation_callback(~,~)
+        handles=guidata(load_button1);
         [handles.caract1, handles.masque1] = codeCaract(handles.masqueS, handles.caract,handles.debut,handles.fin, handles.coords, handles.xBegaze, handles.yBegaze);
         set(tab, 'Data', handles.caract1)
         guidata(load_button1, handles);
     end
     function Valider_Callback(~,~)
-        handles=guidata(load_button1)
-        handles.debut=str2double(get(starttimemap_edit,'String'))*1000
-        handles.fin=str2double(get(endtimemap_edit,'String'))*1000
+        handles=guidata(load_button1);
+        handles.debut=str2double(get(starttimemap_edit,'String'))*1000;
+        handles.fin=str2double(get(endtimemap_edit,'String'))*1000;
         guidata(load_button1,handles)
     end
     function time_edit_callback(source, ~)
@@ -339,15 +337,15 @@ handles.obj=[];
         if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > str2double(get(endtimemap_edit,'String'))
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
-            h = errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
+             errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
                 'Saisie incorrect', mode);
         elseif str2double(get(source,'String'))==str2double(get(endtimemap_edit,'String'))
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
-            h = errordlg('Le temps de début ne peut être égal au temps de fin',...
+            errordlg('Le temps de début ne peut être égal au temps de fin',...
                 'Saisie incorrect', mode);
         else
-            handles.mem=str2double(get(source,'String'))*30
+            handles.mem=str2double(get(source,'String'))*30;
             this_frame = read(handles.obj,handles.mem);
             this_frame=imrotate(this_frame,180);
             this_frame = flip(this_frame ,2);
@@ -356,16 +354,14 @@ handles.obj=[];
             guidata(load_button1,handles)
         end
     end
-
     function movieslider_callback(source, ~)
         handles=guihandles(source);
-        currAxes = handles.movie_scrn;      
-        
+        currAxes = handles.movie_scrn;              
         val = get(source, 'Value');
-        handles=guidata(load_button1)
+        handles=guidata(load_button1);
         handles.endtime =ceil(handles.obj.FrameRate*handles.obj.Duration);
         set(movie_slider, 'max',handles.endtime);
-        i = round(val)
+        i = round(val);
         set(currAxes, 'NextPlot', 'add', 'YTick', [], 'XTick', []);
         this_frame=read(handles.obj,i);
         this_frame=imrotate(this_frame,180);
@@ -384,15 +380,15 @@ handles.obj=[];
         if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > handles.endtime/30
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
-            h = errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
+            errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
                 'Saisie incorrect', mode);
         elseif str2double(get(source,'String'))==str2double(get(starttimemap_edit,'String'))
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
-            h = errordlg('Le temps de début ne peut être égal au temps de fin',...
+            errordlg('Le temps de début ne peut être égal au temps de fin',...
                 'Saisie incorrect', mode);
         else
-            handles.endtime=str2double(get(source,'String'))*30
+            handles.endtime=str2double(get(source,'String'))*30;
             guidata(load_button1,handles)
         end
     end
