@@ -49,7 +49,7 @@ masque = masque(b,:);
 a = masque(:,[1 5 6 7]);
 a=string(a);
 
-for r = 1:length(caract)
+for r = 1:length(caract(:,1))
     indexMasque = find(strcmp(a(:,1),caract{r,1}));
     Masque = a(indexMasque,:);
     indexMasqueIn = find(strcmp(Masque(:,2),'true'));
@@ -63,18 +63,24 @@ for r = 1:length(caract)
     compteur = 0;
     compteur2 = 0;
     if isempty(Masque)==0
-        if strcmp(Masque(1,2),'true')
-            compteur = compteur+1;
-        end
-        for m0 = 2:length(Masque)
-            if strcmp(Masque(m0,2),'true') & strcmp(Masque(m0-1,2),'false')
+        if length(Masque(:,1))==1
+            if strcmp(Masque(1,2),'true')
                 compteur = compteur+1;
+            end
+        else
+            if strcmp(Masque(1,2),'true')
+                compteur = compteur+1;
+            end
+            for m0 = 2:length(Masque(:,1))
+                if strcmp(Masque(m0,2),'true') & strcmp(Masque(m0-1,2),'false')
+                    compteur = compteur+1;
+                end
             end
         end
         if isempty(MasqueIn)==0
             compteur2 = str2double(MasqueIn(1,4));
             if length(MasqueIn(:,1))==1
-                compteur2 = str2double(MasqueIn(1,4))
+                compteur2 = str2double(MasqueIn(1,4));
             else
                 for t=2:length(MasqueIn(:,1))
                     if str2double(MasqueIn(t,4))~=str2double(MasqueIn(t-1,4))
