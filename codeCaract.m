@@ -10,14 +10,14 @@ coords2 = coords2(temps2, :);
 xBegaze2 = xBegaze2(temps2, :);
 yBegaze2 = yBegaze2(temps2, :);
 
-for j = 1:length(coords2)
+for j = 1:length(coords2(:,1))
     tempsCoords(j,2) = str2double(coords2(j,5));
     tempsCoords(j,2) = tempsCoords(j,2)/1000;
     tempsCoords(j,1) = str2double(coords2(j,4));
     tempsCoords(j,1) = tempsCoords(j,1)/1000;
 end
 
-for i = 1:length(masque)
+for i = 1:length(masque(:,1))
     m=1;
     index=0;
     tempsM(i,1) = str2double(masque(i,3));
@@ -58,30 +58,39 @@ for r = 1:length(caract)
         minMasque = min(indexMasqueIn);
         minMasqueIn(r) = indexMasque(minMasque);
     else
-        minMasqueIn(r)="";
+        minMasqueIn(r) = "NULL";
     end
     compteur = 0;
     compteur2 = 0;
-    if strcmp(Masque(1,2),'true')
-        compteur = compteur+1;
-    end
-    for m0 = 2:length(Masque)
-        if strcmp(Masque(m0,2),'true') & strcmp(Masque(m0-1,2),'false')
+    if isempty(Masque)==0
+        if strcmp(Masque(1,2),'true')
             compteur = compteur+1;
         end
-    end
-    if ~isempty(MasqueIn)
-        compteur2 = str2double(MasqueIn(1,4));
-        for t=2:length(MasqueIn)
-            if str2double(MasqueIn(t,4))~=str2double(MasqueIn(t-1,4))
-                compteur2 = compteur2+str2double(MasqueIn(t,4));
+        for m0 = 2:length(Masque)
+            if strcmp(Masque(m0,2),'true') & strcmp(Masque(m0-1,2),'false')
+                compteur = compteur+1;
             end
         end
+        if isempty(MasqueIn)==0
+            compteur2 = str2double(MasqueIn(1,4));
+            if length(MasqueIn(:,1))==1
+                compteur2 = str2double(MasqueIn(1,4))
+            else
+                for t=2:length(MasqueIn(:,1))
+                    if str2double(MasqueIn(t,4))~=str2double(MasqueIn(t-1,4))
+                        compteur2 = compteur2+str2double(MasqueIn(t,4));
+                    end
+                end
+            end
+        end
+        caract{r,2} = num2str(compteur);
+        caract{r,2} = char(caract{r,2});
+        caract{r,3} = num2str(compteur2);
+        caract{r,3} = char(caract{r,3});
+    else
+        caract{r,2} = num2str(0);
+        caract{r,3} = num2str(0);
     end
-    caract{r,2} = num2str(compteur);
-    caract{r,2} = char(caract{r,2});
-    caract{r,3} = num2str(compteur2);
-    caract{r,3} = char(caract{r,3});
 end
 
 
@@ -93,9 +102,9 @@ for t=1:length(indexOrdre)
     caract{indexOrdre(t),4} = char(caract{indexOrdre(t),4});
 end
 
-for p = 1:length(minMasqueIn)
-    if isnan(minMasqueIn(p))==1
-        caract{p,4}="NULL";
+for p = 1:length(caract(:,1))
+    if strcmp(caract(p,2),'0')
+        caract{p,4} = "NULL";
         caract{p,4}=char(caract{p,4});
     end
 end
