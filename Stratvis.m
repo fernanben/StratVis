@@ -52,7 +52,7 @@ export_button =uicontrol(...
     'Position', [325, 410, 105, 25], ...
     'callback', {@export_callback}...
     );
-% set(export_button,'Enable','off')
+ set(export_button,'Enable','off')
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Panel de chargement----------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ load_button2 = uicontrol('Parent', chargement, ...
     'Position', [50, 60, 200, 30], ...
     'callback', {@load2_callback}...
     );
-% set(load_button2, 'Enable', 'off');
+ set(load_button2, 'Enable', 'off');
 
 load_button3 = uicontrol('Parent', chargement, ...
     'Style', 'pushbutton', ...
@@ -92,7 +92,7 @@ load_button3 = uicontrol('Parent', chargement, ...
     'Position', [50, 20, 200, 30],...
     'callback', {@load3_callback}...
     );
-% set(load_button3, 'Enable', 'off');
+ set(load_button3, 'Enable', 'off');
 
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------PanelVidéo-------------------------------------------------------------
@@ -105,7 +105,7 @@ v = uipanel( ...
     'Position', [520, 430, 800, 320 ] ...
     );
 
-handles.movie_scrn = axes( ...
+movie_scrn = axes( ...
     'Parent', v, ...
     'tag', 'movie_scrn', ...
     'Units', 'Pixels', ...
@@ -114,7 +114,7 @@ handles.movie_scrn = axes( ...
     'NextPlot', 'add', ...
     'Position', [20, 10, 380, 340] ...
     );
-set(handles.movie_scrn, 'Visible', 'off');
+set(movie_scrn, 'Visible', 'off');
 
 movie_slider = uicontrol( ...
     'Parent', v, ...
@@ -128,7 +128,7 @@ set(movie_slider, 'max',100);
 set(movie_slider, 'value',2);
 addlistener(movie_slider, 'ContinuousValueChange', @movieslider_callback);
 
-handles.play_button = uicontrol( ...
+play_button = uicontrol( ...
     'Parent', v, ...
     'Style', 'pushbutton', ...
     'FontSize', 10, ...
@@ -137,7 +137,7 @@ handles.play_button = uicontrol( ...
     'Position', [490, 240, 60, 25],...
     'callback', {@play_Callback} ...
     );
-handles.stop_button = uicontrol( ...
+stop_button = uicontrol( ...
     'Parent', v, ...
     'Style', 'pushbutton', ...
     'FontSize', 10, ...
@@ -231,13 +231,13 @@ movegui(f, 'center')
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Variables--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
-handles.filename3='';
-handles.mem=1;
-handles.endtime=2000;
-handles.depart=1;
+handles2.filename3='';
+handles2.mem=1;
+handles2.endtime=2000;
+handles2.depart=1;
 
-handles.debut=0;
-handles.fin=0;
+handles2.debut=0;
+handles2.fin=0;
 
 handles.coords=[];
 handles.xBegaze=[];
@@ -249,20 +249,19 @@ handles.caract1=[];
 handles.masque1=[];
 handles.masqueS=[];
 
-handles.obj=[];
+handles2.loopbreaker=0;
+handles2.obj=[];
 %---------------------------------------------------------------------------------------------------------------------
 %----------------------------------------------Callbacks--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
-    function load1_callback (hObject,~)
+    function load1_callback (~,~)
         set(load_button2, 'Enable', 'on');
         %browser
         [FileName,~,~] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées du marqueur');
-        disp(hObject.String)
-        handles = guihandles(hObject);
-        %changement nom du bouton
-        handles.Load_button1.String = FileName;
-        handles.marqueur = importdata(FileName);
+        %changement nom du bouton 
         handles.filename1=FileName;
+        set(load_button1, 'String' , handles.filename1);   
+        handles.marqueur = importdata(FileName);
         %recuperation des données BeGaze
         [handles.coords, handles.xBegaze, handles.yBegaze] = coordonneesBeGaze(handles.filename1);
         %initialisation de l'intervalle d'étude au début et la fin de la
@@ -271,16 +270,14 @@ handles.obj=[];
         handles.fin=max(str2double(handles.coords(:,5)));
         guidata(load_button1, handles)
     end
-    function load2_callback (hObject,~)
+    function load2_callback (~,~)        
+        set(load_button3, 'Enable', 'on');
         %browser
         [FileName,~,~] = uigetfile('*.xml', 'Selectionner le fichier texte avec les coordonnées des masques');
-        disp(hObject.String)
-        %chargement handles
-        handles=guidata(load_button1);
-        %changement nom du bouton
-        handles.Load_button2.String = FileName;
-        handles.masque = importdata(FileName);
+        %changement nom du bouton  
         handles.filename2=FileName;
+        set(load_button2, 'String' , handles.filename2);      
+        handles.masque = importdata(FileName);
         %parser XML
         [handles.masqueS, handles.caract] = parserXML(handles.filename2);
         %enregistrement des handles dans une structure
@@ -288,54 +285,48 @@ handles.obj=[];
     end
     function load3_callback (~,~)
         %chargement structure
-        currAxes = handles.movie_scrn;
+        currAxes = movie_scrn;
         %recuperation nom/chemin ... du fichier recherché
         [FileName,~,~] = uigetfile('*.avi', 'Selectionner la vidéo');
         %initialisation handles
-        handles=guidata(handles.play_button);
-        handles.filename3=FileName ;
-        set(load_button3, 'String' , handles.filename3);
-        handles.mem=1;
-        h = waitbar(0,'Veuillez patienter');
-        
-        handles.obj = VideoReader(FileName);
-        this_frame = read(handles.obj, handles.mem);
+        handles2.filename3=FileName ;
+        set(load_button3, 'String' , handles2.filename3);
+        handles2.mem=1;
+        h = waitbar(0,'Veuillez patienter');        
+        handles2.obj = VideoReader(FileName);
+        this_frame = read(handles2.obj, handles2.mem);
         %rotations image
         this_frame=imrotate(this_frame,180);
         this_frame = flip(this_frame ,2);
         %affichage sur l'axe
-        image(this_frame, 'Parent', currAxes);
-        
+        image(this_frame, 'Parent', currAxes);        
         %declaration du temps de fin de la vidéo
-        handles.endtime =ceil(handles.obj.FrameRate*handles.obj.Duration);
-        
-        %Détermination taille de la slide bar
-        set(movie_slider, 'min',1,'max',handles.endtime);
+        handles2.endtime =ceil(handles2.obj.FrameRate*handles2.obj.Duration);
+         %Détermination taille de la slide bar
+        set(movie_slider, 'min',1,'max',handles2.endtime);
         %affichage du temps de début et fin vidéo
         set(starttimemap_edit,'String',0);
-        set(endtimemap_edit,'String',handles.endtime/30);
-        
-        set(participant_edit,'String',handles.filename3);
-        set(calculer_button,'Enable','on')
-        guidata(calculer_button,handles)
-        close(h)
+        set(endtimemap_edit,'String',handles2.endtime/30);
+        set(participant_edit,'String',handles2.filename3);
+        set(calculer_button,'Enable','on')        
+        set(export_button,'Enable','on')
+        guidata(calculer_button,handles2)
+        close(h);
     end
-    function play_Callback(source,~)
+    function play_Callback(~,~)
         %initialisation axes
-        handles = guihandles(source);
-        currAxes = handles.movie_scrn;
+        currAxes = movie_scrn;
         %chargement handles
-        handles=guidata(calculer_button);
-        handles.play_button.Value =1;
-        handles.depart=handles.mem;
+        handles2.loopbreaker =1;
+        handles2.depart=handles2.mem;
         %affichage du temps de départ
-        set(starttimemap_edit,'String',num2str(round(handles.depart/30,2)));
+        set(starttimemap_edit,'String',num2str(round(handles2.depart/30,2)));
         %boucle d'affichage des frames
-        for k= handles.depart:handles.endtime
+        for k= handles2.depart:handles2.endtime
             %condition d'arret
-            if handles.play_button.Value ==1
+            if handles2.loopbreaker ==1
                 %lecture frame
-                this_frame = read(handles.obj,k);
+                this_frame = read(handles2.obj,k);
                 %rotation de l'image
                 this_frame=imrotate(this_frame,180);
                 this_frame = flip(this_frame ,2);
@@ -345,44 +336,40 @@ handles.obj=[];
                 image(this_frame, 'Parent', currAxes);
                 %enregistrement dans mémoire pour reprendre la boucle après
                 %une pause
-                handles.mem = k;
+                handles2.mem = k;
                 %mise à jour de la slide bar
                 set(movie_slider, 'Value',k);
                 %affichage du temps actuel dans la vidéo
                 set(Currenttime_edit,'String',num2str(round(k*(1/30),1)));
                 pause(1/60)
             end
-            guidata(calculer_button,handles)
+            guidata(calculer_button,handles2)
         end
     end
     function stop_Callback(~,~)
-        handles=guidata(calculer_button);
-        % loop breaker
-        handles.play_button.Value = 0;
-        guidata(calculer_button,handles)
+        handles2.loopbreaker = 0;
+        guidata(calculer_button,handles2)
     end
     function calculer_callback(~,~)
-        handles=guidata(load_button1);
         %calcul des données statistiques
         [handles.caract1, handles.masque1] = codeCaract(handles.masqueS, handles.caract,handles.debut,handles.fin, handles.coords, handles.xBegaze, handles.yBegaze);
         set(tab, 'Data', handles.caract1);
+        guidata(calculer_button, handles2);
         guidata(load_button1, handles);
         set(calculer_button,'Enable','off');
     end
     function Valider_Callback(~,~)
-        handles=guidata(load_button1);
         %déclaration des variables correspondant à l'intervalle d'étude en
         %ms
         handles.debut=str2double(get(starttimemap_edit,'String'))*1000;
         handles.fin=str2double(get(endtimemap_edit,'String'))*1000;
-        guidata(load_button1,handles)
+        guidata(calculer_button,handles2)
         set(calculer_button,'Enable','on');
+        set(export_button,'Enable','on')
     end
     function time_edit_callback(source, ~)
-        handles=guihandles(source);
-        currAxes = handles.movie_scrn;
-        handles=guidata(calculer_button);
-        if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > ceil(handles.obj.FrameRate*handles.obj.Duration)
+        currAxes = movie_scrn;
+        if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > ceil(handles2.obj.FrameRate*handles2.obj.Duration)
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
@@ -393,41 +380,38 @@ handles.obj=[];
             errordlg('Le temps de début ne peut être égal au temps de fin',...
                 'Saisie incorrect', mode);
         else
-            handles.mem=str2double(get(source,'String'))*30;
-            this_frame = read(handles.obj,handles.mem);
+            handles2.mem=str2double(get(source,'String'))*30;
+            this_frame = read(handles2.obj,handles2.mem);
             this_frame=imrotate(this_frame,180);
             this_frame = flip(this_frame ,2);
             image(this_frame, 'Parent', currAxes);
-            set(movie_slider, 'Value',handles.mem);
-            set(Currenttime_edit, 'String',handles.mem/30);
+            set(movie_slider, 'Value',handles2.mem);
+            set(Currenttime_edit, 'String',handles2.mem/30);
             currAxes.Visible = 'off' ;
-            guidata(calculer_button,handles)
+            guidata(calculer_button,handles2)
         end
     end
     function movieslider_callback(source, ~)
-        handles=guihandles(source);
-        currAxes = handles.movie_scrn;
+        currAxes = movie_scrn;
         val = get(source, 'Value');
-        handles=guidata(calculer_button);
-        handles.endtime =ceil(handles.obj.FrameRate*handles.obj.Duration);
-        set(movie_slider, 'max',handles.endtime);
+        handles2.endtime =ceil(handles2.obj.FrameRate*handles2.obj.Duration);
+        set(movie_slider, 'max',handles2.endtime);
         i = round(val);
         set(currAxes, 'NextPlot', 'add', 'YTick', [], 'XTick', []);
-        this_frame=read(handles.obj,i);
+        this_frame=read(handles2.obj,i);
         this_frame=imrotate(this_frame,180);
         this_frame = flip(this_frame ,2);
         image(this_frame, 'Parent', currAxes);
         axis off;
         set(Currenttime_edit,'String',i/30);
-        set(endtimemap_edit,'String',handles.endtime/30);
+        set(endtimemap_edit,'String',handles2.endtime/30);
         set(starttimemap_edit,'String',i/30);
-        handles.mem=i;
-        guidata(calculer_button,handles)
+        handles2.mem=i;
+        guidata(calculer_button,handles2)
         
     end
     function endtime_callback(source,~)
-        handles=guidata(calculer_button);
-        if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > ceil(handles.obj.FrameRate*handles.obj.Duration)
+        if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > ceil(handles2.obj.FrameRate*handles2.obj.Duration)
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
@@ -439,10 +423,11 @@ handles.obj=[];
                 'Saisie incorrect', mode);
         else
             handles.endtime=str2double(get(source,'String'))*30;
-            guidata(calculer_button,handles)
+            guidata(calculer_button,handles2)
         end
     end
     function export_callback(~,~)
         texte = exporterTexte(handles.caract1, handles.coords, handles.debut,handles.fin)
+        set(export_button,'Enable','off')
     end
 end
