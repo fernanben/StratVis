@@ -310,13 +310,16 @@ handles2.obj=[];
 %---------------------------------------------------------------------------------------------------------------------
     function load1_callback (~,~)
         [FileName,~,~] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées du marqueur');
-        [~,~,ext] = fileparts(FileName)
+
         if isequal(FileName,0)
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Veuillez sélectionner le fichier contenant les coordonnées du marqueur (BeGaze)',...
                 'Saisie incorrect', mode);
-        elseif ~strcmp(string(ext),'.txt')
+        else
+                    [~,~,ext] = fileparts(FileName)
+        end
+        if ~strcmp(string(ext),'.txt')
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Le fichier sélectionner n est pas un .txt',...
@@ -340,13 +343,16 @@ handles2.obj=[];
     function load2_callback (~,~)
         %browser
         [FileName,~,~] = uigetfile('*.xml', 'Selectionner le fichier texte avec les coordonnées des masques');
-        [~,~,ext] = fileparts(FileName)
+        
         if isequal(FileName,0)
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Veuillez sélectionner le fichier contenant les coordonnées des masques (Sensarea)',...
                 'Saisie incorrect', mode);
-        elseif ~strcmp(string(ext),'.xml')
+        else
+            [~,~,ext] = fileparts(FileName)
+        end
+        if ~strcmp(string(ext),'.xml')
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Le fichier sélectionner n est pas un .xml',...
@@ -368,13 +374,16 @@ handles2.obj=[];
         currAxes = movie_scrn;
         %recuperation nom/chemin ... du fichier recherché
         [FileName,~,~] = uigetfile('*.avi', 'Selectionner la vidéo');
-        [~,~,ext] = fileparts(FileName)
+        
         if isequal(FileName,0)
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Veuillez sélectionner le fichier contenant les coordonnées du marqueur (BeGaze)',...
                 'Saisie incorrect', mode);
-        elseif ~strcmp(string(ext),'.avi')
+        else
+            [~,~,ext] = fileparts(FileName)
+        end
+        if ~strcmp(string(ext),'.avi')
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Le fichier sélectionner n est pas un .vi',...
@@ -550,7 +559,7 @@ handles2.obj=[];
             errordlg('Veuillez choisir une destination et le nom du fichier pour enregistrer',...
                 'Saisie incorrect', mode);
         else
-            texte = exporterTexte(file,handles.caract1, handles.coords, handles.debut,handles.fin)
+            texte = exporterTexte(file, path,handles.caract1, handles.coords, handles.debut,handles.fin)
             set(export_button,'Enable','off')
         end
     end
