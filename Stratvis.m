@@ -184,7 +184,7 @@ uicontrol( ...
     'Style', 'text', ...
     'HorizontalAlignment', 'left', ...
     'FontSize', 10, ...
-    'String', 'Debut (sec) :', ...
+    'String', 'Début (sec) :', ...
     'ForegroundColor','w',...
     'BackgroundColor',[0.3 0.3 0.3],...
     'Position', [470, 170, 105, 15], ...
@@ -317,18 +317,17 @@ handles2.obj=[];
             errordlg('Veuillez sélectionner le fichier contenant les coordonnées du marqueur (BeGaze)',...
                 'Saisie incorrect', mode);
         else
-                    [~,~,ext] = fileparts(FileName)
+                    [~,~,ext] = fileparts(FileName);
         end
         if ~strcmp(string(ext),'.txt')
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
-            errordlg('Le fichier sélectionner n est pas un .txt',...
+            errordlg('Le fichier sélectionné n est pas un .txt',...
                 'Saisie incorrect', mode);
         else
             %browser
             %changement nom du bouton
-            handles.filename1=FileName;
-            set(load_button1, 'String' , handles.filename1);
+            handles.filename1=FileName;            
             handles.marqueur = importdata(FileName);
             %recuperation des données BeGaze
             [handles.coords, handles.xBegaze, handles.yBegaze] = coordonneesBeGaze(handles.filename1);
@@ -338,6 +337,7 @@ handles2.obj=[];
             handles.fin=max(str2double(handles.coords(:,5)));
             guidata(load_button1, handles)
             set(load_button2, 'Enable', 'on');
+            set(load_button1, 'String' , handles.filename1);
         end
     end
     function load2_callback (~,~)
@@ -350,43 +350,43 @@ handles2.obj=[];
             errordlg('Veuillez sélectionner le fichier contenant les coordonnées des masques (Sensarea)',...
                 'Saisie incorrect', mode);
         else
-            [~,~,ext] = fileparts(FileName)
+            [~,~,ext] = fileparts(FileName);
         end
         if ~strcmp(string(ext),'.xml')
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
-            errordlg('Le fichier sélectionner n est pas un .xml',...
+            errordlg('Le fichier sélectionné n est pas un .xml',...
                 'Saisie incorrect', mode);
         else
             %changement nom du bouton
-            handles.filename2=FileName;
-            set(load_button2, 'String' , handles.filename2);
+            handles.filename2=FileName;           
             handles.masque = importdata(FileName);
             %parser XML
             [handles.masqueS, handles.caract] = parserXML(handles.filename2);
-            %enregistrement des handles dans une structure
+            %enregistrement des handles dans une structure            
             guidata(load_button1, handles);
             set(load_button3, 'Enable', 'on');
+            set(load_button2, 'String' , handles.filename2);
         end
     end
     function load3_callback (~,~)
         %chargement structure
         currAxes = movie_scrn;
         %recuperation nom/chemin ... du fichier recherché
-        [FileName,~,~] = uigetfile('*.avi', 'Selectionner la vidéo');
+        [FileName,~,~] = uigetfile({'*.avi' ; '*.mp4'}, 'Selectionner la vidéo');
         
         if isequal(FileName,0)
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
-            errordlg('Veuillez sélectionner le fichier contenant les coordonnées du marqueur (BeGaze)',...
+            errordlg('Veuillez sélectionner le fichier contenant la vidéo',...
                 'Saisie incorrect', mode);
         else
-            [~,~,ext] = fileparts(FileName)
+            [~,~,ext] = fileparts(FileName);
         end
         if ~strcmp(string(ext),'.avi')
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
-            errordlg('Le fichier sélectionner n est pas un .vi',...
+            errordlg('Le fichier sélectionné n est pas un .avi ou .mp4',...
                 'Saisie incorrect', mode);
             %initialisation handles
         else
@@ -480,17 +480,29 @@ handles2.obj=[];
                 'Interpreter','tex');
             errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
                 'Saisie incorrect', mode);
+            set(handles.valider,'Enable', 'off');
+            set(calculer_button,'Enable','off');
+            set(export_button,'Enable','off');
         elseif str2double(get(source,'String'))==str2double(get(endtimemap_edit,'String'))
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Le temps de début ne peut être égal au temps de fin',...
-                'Saisie incorrect', mode);
+                'Saisie incorrect', mode);            
+            set(handles.valider,'Enable', 'off');
+              set(calculer_button,'Enable','off');
+            set(export_button,'Enable','off');
         elseif str2double(get(source,'String'))> str2double(get(endtimemap_edit,'String'))
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Le temps de début ne peut être supérieur au temps de fin',...
-                'Saisie incorrect', mode);
-        else            
+                'Saisie incorrect', mode);            
+            set(handles.valider,'Enable', 'off');
+              set(calculer_button,'Enable','off');
+            set(export_button,'Enable','off');
+        else                     
+            set(handles.valider,'Enable', 'on');
+              set(calculer_button,'Enable','on');
+            set(export_button,'Enable','on');
             if str2double(get(source,'String'))==0
                 handles2.mem=1;
             else
@@ -530,36 +542,51 @@ handles2.obj=[];
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
-                'Saisie incorrect', mode);
+                'Saisie incorrect', mode);            
+            set(handles.valider,'Enable', 'off');
+              set(calculer_button,'Enable','off');
+            set(export_button,'Enable','off');
         elseif str2double(get(source,'String'))==str2double(get(starttimemap_edit,'String'))
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Le temps de début ne peut être égal au temps de fin',...
-                'Saisie incorrect', mode);
+                'Saisie incorrect', mode);            
+            set(handles.valider,'Enable', 'off');
+              set(calculer_button,'Enable','off');
+            set(export_button,'Enable','off');
         elseif str2double(get(source,'String'))<str2double(get(starttimemap_edit,'String'))
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Le temps de début ne peut être supérieur au temps de fin',...
-                'Saisie incorrect', mode);
+                'Saisie incorrect', mode);            
+            set(handles.valider,'Enable', 'off');
+              set(calculer_button,'Enable','off');
+            set(export_button,'Enable','off');
         elseif str2double(get(source,'String'))-str2double(get(starttimemap_edit,'String')) < 1
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Intervalle doit être supérieur ou égal à 1 sec',...
-                'Saisie incorrect', mode);
-        else
+                'Saisie incorrect', mode);            
+            set(handles.valider,'Enable', 'off');
+              set(calculer_button,'Enable','off');
+            set(export_button,'Enable','off');
+        else            
+            set(handles.valider,'Enable', 'on');
+              set(calculer_button,'Enable','on');
+            set(export_button,'Enable','on');
             handles2.endtime=str2double(get(source,'String'))*30;
             guidata(calculer_button,handles2)
         end
     end
     function export_callback(~,~)
-        [file,path]=uiputfile(strcat(char(handles.coords(1,1)),'.txt') , 'Enregistrer le fichier')
+        [file,path]=uiputfile(strcat(char(handles.coords(1,1)),'.txt') , 'Enregistrer le fichier');
         if file==0
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('Veuillez choisir une destination et le nom du fichier pour enregistrer',...
                 'Saisie incorrect', mode);
         else
-            texte = exporterTexte(file, path,handles.caract1, handles.coords, handles.debut,handles.fin)
+            exporterTexte(file, path,handles.caract1, handles.coords, handles.debut,handles.fin);
             set(export_button,'Enable','off')
         end
     end
