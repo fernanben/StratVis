@@ -311,7 +311,7 @@ handles2.obj=[];
 %----------------------------------------------Callbacks--------------------------------------------------------------
 %---------------------------------------------------------------------------------------------------------------------
     function load1_callback (~,~)
-        [FileName,~,~] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées du marqueur');
+        [FileName,path,~] = uigetfile('*.txt', 'Selectionner le fichier texte avec les coordonnées du marqueur');
         
         if isequal(FileName,0)
             mode = struct('WindowStyle','non-modal',...
@@ -330,9 +330,9 @@ handles2.obj=[];
             %browser
             %changement nom du bouton
             handles.filename1=FileName;
-            handles.marqueur = importdata(FileName);
+            handles.marqueur = importdata(fullfile(path,FileName));
             %recuperation des données BeGaze
-            [handles.coords, handles.xBegaze, handles.yBegaze] = coordonneesBeGaze(handles.filename1);
+            [handles.coords, handles.xBegaze, handles.yBegaze] = coordonneesBeGaze(handles.filename1,path);
             %initialisation de l'intervalle d'étude au début et la fin de la
             %vidéo
             handles.debut=min(str2double(handles.coords(:,4)));
@@ -344,7 +344,7 @@ handles2.obj=[];
     end
     function load2_callback (~,~)
         %browser
-        [FileName,~,~] = uigetfile('*.xml', 'Selectionner le fichier texte avec les coordonnées des masques');
+        [FileName,path,~] = uigetfile('*.xml', 'Selectionner le fichier texte avec les coordonnées des masques');
         
         if isequal(FileName,0)
             mode = struct('WindowStyle','non-modal',...
@@ -362,9 +362,9 @@ handles2.obj=[];
         else
             %changement nom du bouton
             handles.filename2=FileName;
-            handles.masque = importdata(FileName);
+            handles.masque = importdata(fullfile(path,FileName));
             %parser XML
-            [handles.masqueS, handles.caract, handles.fps] = parserXML(handles.filename2);
+            [handles.masqueS, handles.caract, handles.fps] = parserXML(handles.filename2, path);
             %enregistrement des handles dans une structure
             guidata(load_button1, handles);
             set(load_button3, 'Enable', 'on');
@@ -375,7 +375,7 @@ handles2.obj=[];
         %chargement structure
         currAxes = movie_scrn;
         %recuperation nom/chemin ... du fichier recherché
-        [FileName,~,~] = uigetfile({'*.avi' ; '*.mp4'}, 'Selectionner la vidéo');
+        [FileName,path,~] = uigetfile({'*.avi' ; '*.mp4'}, 'Selectionner la vidéo');
         if isequal(FileName,0)
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
@@ -389,7 +389,7 @@ handles2.obj=[];
             set(load_button3, 'String' , handles2.filename3);
             handles2.mem=1;
             h = waitbar(0,'Veuillez patienter');
-            handles2.obj = VideoReader(FileName);
+            handles2.obj = VideoReader(fullfile(path,FileName));
             this_frame = read(handles2.obj, handles2.mem);
             %rotations image
             this_frame=imrotate(this_frame,180);
@@ -416,7 +416,7 @@ handles2.obj=[];
             set(load_button3, 'String' , handles2.filename3);
             handles2.mem=1;
             h = waitbar(0,'Veuillez patienter');
-            handles2.obj = VideoReader(FileName);
+            handles2.obj = VideoReader(fullfile(path,FileName));
             this_frame = read(handles2.obj, handles2.mem);
             %rotations image
             this_frame=imrotate(this_frame,180);
