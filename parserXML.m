@@ -1,6 +1,7 @@
 function [masqueCoords, nomMasque,fps] = parserXML(nomFichier)
 
-xDoc=xmlread('reunion.xml'); 
+% Lis le document XML
+xDoc=xmlread(nomFichier); 
 
 import javax.xml.xpath.*;
 
@@ -12,6 +13,7 @@ expression = xpath.compile('sensarea/masks/mask');
 
 listeMask = expression.evaluate(xDoc, XPathConstants.NODESET);
 
+% définit le nombre de masques
 longueurMask = listeMask.getLength;
 
 expression = xpath.compile('sensarea/layers/layer');
@@ -35,12 +37,14 @@ longueurLayer = listeLayer.getLength;
     
  largeur = cellstr(expression.evaluate(xDoc, XPathConstants.STRING));
  
+ % définit le nombre d'image par seconde selon la taille de l'image
  if strcmp(largeur,'1280')
      fps = 24;
  else 
      fps = 30;
  end
 
+ % Récupère les masques et leurs coordonnées
 for i=1:longueurMask
     layer = strcat('sensarea/masks/mask[', int2str(i), ']/layer');
     
@@ -62,7 +66,7 @@ for i=1:longueurMask
         
 end
 
-
+% Récupère le nom des masques
 for n=1:longueurLayer
     for k=1:longueurMask
 
@@ -96,6 +100,7 @@ coords = string(coords);
 masqueCoords(:,2) = masque(:,2);
 
 masqueCoords(:,1) = masque(:,3);
+
 
 for s = 1 : longueurMask
     frameTemps = str2double(masqueCoords(s,2));
