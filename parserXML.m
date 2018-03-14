@@ -1,7 +1,7 @@
-function [masqueCoords, nomMasque,fps] = parserXML(nomFichier)
+function [masqueCoords, nomMasque,fps] = parserXML(nomFichier, path)
 
 % Lis le document XML
-xDoc=xmlread(nomFichier); 
+xDoc=xmlread(fullfile(path,nomFichier)); 
 
 import javax.xml.xpath.*;
 
@@ -13,7 +13,7 @@ expression = xpath.compile('sensarea/masks/mask');
 
 listeMask = expression.evaluate(xDoc, XPathConstants.NODESET);
 
-% définit le nombre de masques
+% dÃ©finit le nombre de masques
 longueurMask = listeMask.getLength;
 
 expression = xpath.compile('sensarea/layers/layer');
@@ -37,14 +37,14 @@ longueurLayer = listeLayer.getLength;
     
  largeur = cellstr(expression.evaluate(xDoc, XPathConstants.STRING));
  
- % définit le nombre d'image par seconde selon la taille de l'image
+ % dÃ©finit le nombre d'image par seconde selon la taille de l'image
  if strcmp(largeur,'1280')
      fps = 24;
  else 
      fps = 30;
  end
 
- % Récupère les masques et leurs coordonnées
+ % RÃ©cupÃ¨re les masques et leurs coordonnÃ©es
 for i=1:longueurMask
     layer = strcat('sensarea/masks/mask[', int2str(i), ']/layer');
     
@@ -66,7 +66,7 @@ for i=1:longueurMask
         
 end
 
-% Récupère le nom des masques
+% RÃ©cupÃ¨re le nom des masques
 for n=1:longueurLayer
     for k=1:longueurMask
 
@@ -101,7 +101,7 @@ masqueCoords(:,2) = masque(:,2);
 
 masqueCoords(:,1) = masque(:,3);
 
-
+% Calcule le temps selon les frames
 for s = 1 : longueurMask
     frameTemps = str2double(masqueCoords(s,2));
     frameTemps = frameTemps/fps;
