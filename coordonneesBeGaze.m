@@ -1,4 +1,4 @@
-function [coordsBegaze, X, Y] = coordonnesBeGaze(nomFichier);
+function [coordsBegaze, X, Y] = coordonneesBeGaze(nomFichier);
 
 point = importdata(nomFichier, ' ');
 
