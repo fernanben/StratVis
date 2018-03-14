@@ -1,5 +1,6 @@
 function Stratvis
 close all;
+clear all;
 clc;
 
 
@@ -302,6 +303,7 @@ handles.masque=[];
 handles.caract1=[];
 handles.masque1=[];
 handles.masqueS=[];
+handles.fps=[];
 
 handles2.loopbreaker=0;
 handles2.obj=[];
@@ -362,7 +364,7 @@ handles2.obj=[];
             handles.filename2=FileName;
             handles.masque = importdata(FileName);
             %parser XML
-            [handles.masqueS, handles.caract] = parserXML(handles.filename2);
+            [handles.masqueS, handles.caract, handles.fps] = parserXML(handles.filename2);
             %enregistrement des handles dans une structure
             guidata(load_button1, handles);
             set(load_button3, 'Enable', 'on');
@@ -400,7 +402,7 @@ handles2.obj=[];
             set(movie_slider, 'min',1,'max',handles2.endtime);
             %affichage du temps de début et fin vidéo
             set(starttimemap_edit,'String',0);
-            set(endtimemap_edit,'String',handles2.endtime/30);
+            set(endtimemap_edit,'String',handles2.endtime/handles.fps);
             set(participant_edit,'String',handles2.filename3);
             set(calculer_button,'Enable','on')
             set(play_button,'Enable','on')
@@ -427,7 +429,7 @@ handles2.obj=[];
             set(movie_slider, 'min',1,'max',handles2.endtime);
             %affichage du temps de début et fin vidéo
             set(starttimemap_edit,'String',0);
-            set(endtimemap_edit,'String',handles2.endtime/30);
+            set(endtimemap_edit,'String',handles2.endtime/handles.fps);
             set(participant_edit,'String',handles2.filename3);
             set(calculer_button,'Enable','on')
             set(play_button,'Enable','on')
@@ -450,7 +452,7 @@ handles2.obj=[];
         handles2.loopbreaker =1;
         handles2.depart=handles2.mem;
         %affichage du temps de départ
-        set(starttimemap_edit,'String',num2str(round(handles2.depart/30,2)));
+        set(starttimemap_edit,'String',num2str(round(handles2.depart/handles.fps,2)));
         %boucle d'affichage des frames
         for k= handles2.depart:handles2.endtime
             %condition d'arret
@@ -470,7 +472,7 @@ handles2.obj=[];
                 %mise à jour de la slide bar
                 set(movie_slider, 'Value',k);
                 %affichage du temps actuel dans la vidéo
-                set(Currenttime_edit,'String',num2str(round(k*(1/30),1)));
+                set(Currenttime_edit,'String',num2str(round(k*(1/handles.fps),1)));
                 pause(1/60)
             end
             guidata(calculer_button,handles2)
@@ -531,14 +533,14 @@ handles2.obj=[];
             if str2double(get(source,'String'))==0
                 handles2.mem=1;
             else
-                handles2.mem=str2double(get(source,'String'))*30;
+                handles2.mem=str2double(get(source,'String'))*handles.fps;
             end
             this_frame = read(handles2.obj,handles2.mem);
             this_frame=imrotate(this_frame,180);
             this_frame = flip(this_frame ,2);
             image(this_frame, 'Parent', currAxes);
             set(movie_slider, 'Value',handles2.mem);
-            set(Currenttime_edit, 'String',handles2.mem/30);
+            set(Currenttime_edit, 'String',handles2.mem/handles.fps);
             currAxes.Visible = 'off' ;
             guidata(calculer_button,handles2)
         end
@@ -555,15 +557,15 @@ handles2.obj=[];
         this_frame = flip(this_frame ,2);
         image(this_frame, 'Parent', currAxes);
         axis off;
-        set(Currenttime_edit,'String',i/30);
-        set(endtimemap_edit,'String',handles2.endtime/30);
-        set(starttimemap_edit,'String',i/30);
+        set(Currenttime_edit,'String',i/handles.fps);
+        set(endtimemap_edit,'String',handles2.endtime/handles.fps);
+        set(starttimemap_edit,'String',i/handles.fps);
         handles2.mem=i;
         guidata(calculer_button,handles2)
         
     end
     function endtime_callback(source,~)
-        if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > ceil(handles2.obj.FrameRate*handles2.obj.Duration)/30
+        if str2double(get(source,'String')) < 1 || str2double(get(source,'String')) > ceil(handles2.obj.FrameRate*handles2.obj.Duration)/handles.fps
             mode = struct('WindowStyle','non-modal',...
                 'Interpreter','tex');
             errordlg('La valeur entrée est inférieur à 0 ou supérieur à la durée totale de la vidéo',...
@@ -599,7 +601,7 @@ handles2.obj=[];
             set(handles.valider,'Enable', 'on');
             set(calculer_button,'Enable','on');
             set(export_button,'Enable','on');
-            handles2.endtime=str2double(get(source,'String'))*30;
+            handles2.endtime=str2double(get(source,'String'))*handles.fps;
             guidata(calculer_button,handles2)
         end
     end
