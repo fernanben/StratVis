@@ -1,8 +1,8 @@
-function masqueCoords = parserXML(nomFichier)
+function [masqueCoords, nomMasque,fps] = parserXML(nomFichier)
 
-xDoc=xmlread(nomFichier); 
+xDoc=xmlread('reunion.xml'); 
 
-import javax.xml.xpath.* 
+import javax.xml.xpath.*;
 
 factory = XPathFactory.newInstance; 
 
@@ -24,9 +24,24 @@ longueurLayer = listeLayer.getLength;
  c=1;
  j=1;
  m=1;
+ x=0;
+ h = waitbar(0,'Veuillez patienter');
  
-for i=1:longueurMask
+ fps = 0;
+ 
+ layer = 'sensarea/video/width';
+ 
+ expression = xpath.compile(layer);
     
+ largeur = cellstr(expression.evaluate(xDoc, XPathConstants.STRING));
+ 
+ if strcmp(largeur,'1280')
+     fps = 24;
+ else 
+     fps = 30;
+ end
+
+for i=1:longueurMask
     layer = strcat('sensarea/masks/mask[', int2str(i), ']/layer');
     
     expression = xpath.compile(layer);
@@ -49,7 +64,6 @@ end
 
 
 for n=1:longueurLayer
-    
     for k=1:longueurMask
 
         if strcmp(masque(k,3),int2str(n))
@@ -63,7 +77,17 @@ for n=1:longueurLayer
             masque(k,3) = cellstr(name);
            
         end
-    end   
+    end
+    
+    name = strcat('sensarea/layers/layer[', int2str(n), ']/name');
+        
+    expression = xpath.compile(name);
+        
+    name = expression.evaluate(xDoc, XPathConstants.STRING);
+    
+    nomMasque{n,1} = string(name);
+    nomMasque{n,1} = char(nomMasque{n,1});
+    
 end
 
 coords = masque(:,1);
@@ -75,12 +99,12 @@ masqueCoords(:,1) = masque(:,3);
 
 for s = 1 : longueurMask
     frameTemps = str2double(masqueCoords(s,2));
-    frameTemps = frameTemps/30;
+    frameTemps = frameTemps/fps;
     frameTemps = num2str(frameTemps);
     masqueCoords{s,3} = frameTemps;
 end 
 
-for p = 1 : longueurMask
+for p = 1 : longueurMask   
     masqueCoords{p,4} = strsplit(coords(p));
 end   
 
@@ -90,9 +114,8 @@ for y = 1 : longueurMask
     end
 end
 
+ close(h)
+
 end
- 
-
-
 
 
