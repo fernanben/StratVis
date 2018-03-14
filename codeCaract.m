@@ -21,26 +21,31 @@ for i = 1:length(masque(:,1))
     m=1;
     index=0;
     tempsM(i,1) = str2double(masque(i,3));
-    while tempsM(i,1)>tempsCoords(m,2) & m<length(tempsCoords)
-        m=m+1;
-    end
-    if tempsM(i,1)>tempsCoords(m,1) & tempsM(i,1)<=tempsCoords(m,2)
-        index=m;
-        masque{i,6} = num2str(index);
-        masque{i,7} = coords2(index,6);
-        xCoords = xBegaze2(index);
-        yCoords = yBegaze2(index);
-        xMasque = str2double(masque{i,4}(1,:));
-        yMasque = str2double(masque{i,4}(2,:));
+    if isempty(coords2(:,1))==0
+        while tempsM(i,1)>tempsCoords(m,2) & m<length(tempsCoords(:,1))
+            m=m+1;
+        end
+        if tempsM(i,1)>tempsCoords(m,1) & tempsM(i,1)<=tempsCoords(m,2)
+            index=m;
+            masque{i,6} = num2str(index);
+            masque{i,7} = coords2(index,6);
+            xCoords = xBegaze2(index);
+            yCoords = yBegaze2(index);
+            xMasque = str2double(masque{i,4}(1,:));
+            yMasque = str2double(masque{i,4}(2,:));
     
-        masque{i,5} = inpolygon(xCoords, yCoords, xMasque, yMasque);
+            masque{i,5} = inpolygon(xCoords, yCoords, xMasque, yMasque);
 
-    else
+        else
+            masque{i,5}=false;
+            masque{i,6}=num2str(0);
+            masque{i,7}=num2str(0);
+        end
+    else    
         masque{i,5}=false;
         masque{i,6}=num2str(0);
         masque{i,7}=num2str(0);
     end
-    
 end
 
 b = find(~strcmp(masque(:,6),'0'));
