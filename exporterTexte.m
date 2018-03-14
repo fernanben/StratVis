@@ -1,4 +1,4 @@
-function texte = exporterTexte(caract, coords, tempsDebut, tempsFin)
+function texte = exporterTexte(filename, path, caract, coords, tempsDebut, tempsFin)
 
 texte(1,1) = strcat('Participant :',{' '},coords(1,1));
 texte(2,1) = strcat({' '});
@@ -12,10 +12,7 @@ for i=1:length(caract(:,1))
     texte(i+6,1) = char(strcat('Region interet :',{' '},char(texteCaract(i,1)),{', '},char(texteCaract(i,2)),{', '}, char(texteCaract(i,3)),{', '}, char(texteCaract(i,4))));
 end
 
-filename = strcat(coords(1,1),'.txt');
-filename
-save(char(filename));
-f = fopen(char(filename),'wt');
+f=fopen(fullfile(path,filename),'wt');
 
 for j = 1:length(texte(:,1))
     fprintf(f,'%s\n',texte(j,1));
